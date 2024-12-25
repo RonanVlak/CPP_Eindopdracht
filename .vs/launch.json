@@ -1,0 +1,35 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Build and Debug",
+            "type": "cppdbg",
+            "request": "launch",
+            "preLaunchTask": "CMake Build",
+            "program": "${workspaceFolder}/Code/build/bin",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "miDebuggerPath": "${env:OS} == 'Windows_NT' ? 'C:/mingw-w64/bin/gdb.exe' : '/usr/bin/gdb'",
+            "logging": {
+                "engineLogging": false,
+                "trace": false,
+                "traceResponse": false
+            },
+            "serverLaunchTimeout": 10000,
+            "filterStdout": true,
+            "filterStderr": false,
+            "internalConsoleOptions": "openOnSessionStart"
+        }
+    ]
+}
