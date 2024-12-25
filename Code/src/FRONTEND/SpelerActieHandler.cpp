@@ -5,9 +5,7 @@ SpelerActieHandler::SpelerActieHandler(std::unique_ptr<Spelwereld>& aSpelwereld,
     : mSpelwereld(*aSpelwereld), mSpeler(*aSpeler), mGebruikersInterface(*aGebruikersInterface) {}
 
 SpelerActieHandler::~SpelerActieHandler() {
-   // delete &mSpelwereld;
-   // delete &mSpeler;
-   // delete &mGebruikersInterface;
+    // No need to delete raw pointers as they are managed elsewhere
 }
 
 SpelerActieHandler::Actie SpelerActieHandler::stringNaarActie(const std::string& aActie) {
@@ -27,6 +25,7 @@ SpelerActieHandler::Actie SpelerActieHandler::stringNaarActie(const std::string&
     if (aActie == "God mode") return Actie::GodMode;
     return Actie::Onbekend;
 }
+
 void SpelerActieHandler::verwerkActie(const std::string& aActie) {
     Actie actie = stringNaarActie(aActie);
     switch (actie) {
@@ -101,7 +100,7 @@ void SpelerActieHandler::verwerkActie(const std::string& aActie) {
             break;
         case Actie::Consumeer: {
             std::string objectnaam;
-            std::cout << "Voer consumeerbaar object toe: ";
+            std::cout << "Voer objectnaam in: ";
             std::getline(std::cin, objectnaam);
             consumeer(objectnaam);
             break;
@@ -115,7 +114,6 @@ void SpelerActieHandler::verwerkActie(const std::string& aActie) {
     }
 }
 
-
 void SpelerActieHandler::kijk() {
     if (mSpelwereld.getCurrentLocatie()) {
         std::cout << "Locatie: " << mSpelwereld.getCurrentLocatie()->getNaam() << std::endl;
@@ -125,12 +123,14 @@ void SpelerActieHandler::kijk() {
         mSpelwereld.getCurrentLocatie()->printZichtbareObjecten();
         
         std::cout << "Vijanden: " << std::endl;
-        for (int i = 0; i < mSpelwereld.getCurrentLocatie()->getVijandenCount(); ++i) {
-            if (mSpelwereld.getCurrentLocatie()->getVijand(i) != nullptr) {
-                std::cout << "  - " << mSpelwereld.getCurrentLocatie()->getVijand(i)->getNaam() << std::endl;
+        int vijandenCount = mSpelwereld.getCurrentLocatie()->getVijandenCount();
+        for (int i = 0; i < vijandenCount; ++i) {
+            Vijand* vijand = mSpelwereld.getCurrentLocatie()->getVijand(i);
+            if (vijand != nullptr) {
+                std::cout << "  - " << vijand->getNaam() << std::endl;
             }
         }
-        if (mSpelwereld.getCurrentLocatie()->getVijandenCount() == 0) {
+        if (vijandenCount == 0) {
             std::cout << "  Geen vijanden" << std::endl;
         }
 
@@ -188,23 +188,7 @@ void SpelerActieHandler::pak(const std::string& aObjectnaam) {
         for (int i = 0; i < mSpelwereld.getCurrentLocatie()->getZichtbareObjectenCount(); ++i) {
             Spelobject* obj = mSpelwereld.getCurrentLocatie()->getZichtbaarObject(i);
             if (obj && obj->getNaam() == aObjectnaam) {
-                if (auto consumeerbaar = dynamic_cast<ConsumeerbaarObject*>(obj)) {
-                    mSpeler.voegConsumeerbaarObjectToe(std::unique_ptr<ConsumeerbaarObject>(consumeerbaar));
-                } 
-                else if (auto wapen = dynamic_cast<WapenObject*>(obj)) {
-                    mSpeler.voegWapenToe(std::unique_ptr<WapenObject>(wapen));
-                } 
-                else if (auto wapenrusting = dynamic_cast<WapenrustingObject*>(obj)) {
-                    mSpeler.voegWapenrustingToe(std::unique_ptr<WapenrustingObject>(wapenrusting));
-                } 
-                else if (auto goudstukken= dynamic_cast<GoudstukkenObject*>(obj)) {
-                    mSpeler.voegGoudstukkenToe(goudstukken->getAantalGoudstukken());
-                } 
-                else {
-                    std::cout << "Onbekend object type: " << aObjectnaam << std::endl;
-                    return;
-                }
-                //mSpeler.voegObjectToe(std::unique_ptr<Spelobject>(obj));
+                mSpeler.voegObjectToe(std::unique_ptr<Spelobject>(obj));
                 mSpelwereld.getCurrentLocatie()->verwijderZichtbaarObject(obj);
                 std::cout << "Je hebt een item opgepakt: " << aObjectnaam << "." << std::endl;
                 return;
@@ -217,26 +201,10 @@ void SpelerActieHandler::pak(const std::string& aObjectnaam) {
                 for (int j = 0; j < vijand->getAantalSpelobjecten(); ++j) {
                     Spelobject* obj = vijand->getSpelobject(j);
                     if (obj && obj->getNaam() == aObjectnaam) {
-                        if (auto consumeerbaar = dynamic_cast<ConsumeerbaarObject*>(obj)) {
-                            mSpeler.voegConsumeerbaarObjectToe(std::unique_ptr<ConsumeerbaarObject>(consumeerbaar));
-                        } 
-                        else if (auto wapen = dynamic_cast<WapenObject*>(obj)) {
-                            mSpeler.voegWapenToe(std::unique_ptr<WapenObject>(wapen));
-                        } 
-                        else if (auto wapenrusting = dynamic_cast<WapenrustingObject*>(obj)) {
-                            mSpeler.voegWapenrustingToe(std::unique_ptr<WapenrustingObject>(wapenrusting));
-                        } 
-                        else if (auto goudstukken= dynamic_cast<GoudstukkenObject*>(obj)) {
-                            mSpeler.voegGoudstukkenToe(goudstukken->getAantalGoudstukken());
-                        } 
-                        else {
-                            std::cout << "Onbekend object type: " << aObjectnaam << std::endl;
-                            return;
-                        }
-                    //mSpeler.voegObjectToe(std::unique_ptr<Spelobject>(obj));
-                    vijand->removeSpelobject(obj);
-                    std::cout << "Je hebt een item opgepakt van " << vijand->getNaam() << ": " << aObjectnaam << "." << std::endl;
-                    return;
+                        mSpeler.voegObjectToe(std::unique_ptr<Spelobject>(obj));
+                        vijand->removeSpelobject(obj);
+                        std::cout << "Je hebt een item opgepakt van " << vijand->getNaam() << ": " << aObjectnaam << "." << std::endl;
+                        return;
                     }
                 }
             }
@@ -254,8 +222,7 @@ void SpelerActieHandler::legNeer(const std::string& aObjectnaam) {
             if (mSpeler.getConsumeerbareObjecten()[i]->getNaam() == aObjectnaam) {
                 auto temp = std::move(mSpeler.getConsumeerbareObjecten()[i]);
                 mSpeler.getConsumeerbareObjecten().erase(mSpeler.getConsumeerbareObjecten().begin() + i);
-                CustomUniquePtr<Spelobject> obj = CustomUniquePtr<Spelobject>(temp.release());
-                mSpelwereld.getCurrentLocatie()->voegZichtbaarObjectToe(std::move(obj));
+                mSpelwereld.getCurrentLocatie()->voegZichtbaarObjectToe(temp.release());
                 std::cout << "Je hebt een item neergelegd: " << aObjectnaam << "." << std::endl;
                 return;
             }
@@ -264,8 +231,7 @@ void SpelerActieHandler::legNeer(const std::string& aObjectnaam) {
             if (mSpeler.getWapenInventaris()[i]->getNaam() == aObjectnaam) {
                 auto temp = std::move(mSpeler.getWapenInventaris()[i]);
                 mSpeler.getWapenInventaris().erase(mSpeler.getWapenInventaris().begin() + i);
-                CustomUniquePtr<Spelobject> obj = CustomUniquePtr<Spelobject>(temp.release());
-                mSpelwereld.getCurrentLocatie()->voegZichtbaarObjectToe(std::move(obj));
+                mSpelwereld.getCurrentLocatie()->voegZichtbaarObjectToe(temp.release());
                 std::cout << "Je hebt een item neergelegd: " << aObjectnaam << "." << std::endl;
                 return;
             }
@@ -274,8 +240,7 @@ void SpelerActieHandler::legNeer(const std::string& aObjectnaam) {
             if (mSpeler.getWapenrustingInventaris()[i]->getNaam() == aObjectnaam) {
                 auto temp = std::move(mSpeler.getWapenrustingInventaris()[i]);
                 mSpeler.getWapenrustingInventaris().erase(mSpeler.getWapenrustingInventaris().begin() + i);
-                CustomUniquePtr<Spelobject> obj = CustomUniquePtr<Spelobject>(temp.release());
-                mSpelwereld.getCurrentLocatie()->voegZichtbaarObjectToe(std::move(obj));
+                mSpelwereld.getCurrentLocatie()->voegZichtbaarObjectToe(temp.release());
                 std::cout << "Je hebt een item neergelegd: " << aObjectnaam << "." << std::endl;
                 return;
             }
@@ -310,28 +275,26 @@ void SpelerActieHandler::bekijkVijand(const std::string& aVijandnaam) {
         }
     } else {
         std::cout << "Je bent niet in een valide locatie." << std::endl;
-   
     }
 }
+
 void SpelerActieHandler::bekijkZelf() {
-    mGebruikersInterface.toonSpeler(mSpeler);
+    mSpeler.toonGegevens();
 }
 
 void SpelerActieHandler::sla(const std::string& aVijandnaam) {
-
     if (mSpelwereld.getCurrentLocatie()) {
         Vijand* vijand = mSpelwereld.getCurrentLocatie()->getVijandByName(aVijandnaam);
         if (vijand) {
-            if (vijand->isVerslagen()) {
-                std::cout << "Vijand " << aVijandnaam << " is al verslagen." << std::endl;
-                return;
-            }
             if (mSpeler.sla(vijand)) {
-                std::cout << "Je hebt " << aVijandnaam << " aangevallen en verslagen!" << std::endl;
-                //mSpelwereld.getCurrentLocatie()->verwijderVijand(vijand);
-            } 
-        } 
-        else {
+                std::cout << "Je hebt " << vijand->getNaam() << " aangevallen." << std::endl;
+                if (vijand->isVerslagen()) {
+                    std::cout << vijand->getNaam() << " is verslagen!" << std::endl;
+                }
+            } else {
+                std::cout << "Je hebt geen wapen om aan te vallen." << std::endl;
+            }
+        } else {
             std::cout << "Vijand " << aVijandnaam << " is niet gevonden in je huidige locatie." << std::endl;
         }
     } else {
@@ -339,13 +302,12 @@ void SpelerActieHandler::sla(const std::string& aVijandnaam) {
     }
 }
 
-
 void SpelerActieHandler::draagWapenrusting(const std::string& aWapenrustingnaam) {
     for (int i = 0; i < mSpeler.getWapenrustingInventaris().size(); ++i) {
         if (mSpeler.getWapenrustingInventaris()[i]->getNaam() == aWapenrustingnaam) {
             mSpeler.draagWapenrusting(std::move(mSpeler.getWapenrustingInventaris()[i]));
-            mSpeler.verwijderWapenrusting(aWapenrustingnaam);
-            std::cout << "Je draagt nu de wapenrusting: " << aWapenrustingnaam << "." << std::endl;
+            mSpeler.getWapenrustingInventaris().erase(mSpeler.getWapenrustingInventaris().begin() + i);
+            std::cout << "Je draagt nu " << aWapenrustingnaam << "." << std::endl;
             return;
         }
     }
@@ -356,8 +318,8 @@ void SpelerActieHandler::draagWapen(const std::string& aWapennaam) {
     for (int i = 0; i < mSpeler.getWapenInventaris().size(); ++i) {
         if (mSpeler.getWapenInventaris()[i]->getNaam() == aWapennaam) {
             mSpeler.draagWapen(std::move(mSpeler.getWapenInventaris()[i]));
-            mSpeler.verwijderWapen(aWapennaam);
-            std::cout << "Je draagt nu het wapen: " << aWapennaam << "." << std::endl;
+            mSpeler.getWapenInventaris().erase(mSpeler.getWapenInventaris().begin() + i);
+            std::cout << "Je draagt nu " << aWapennaam << "." << std::endl;
             return;
         }
     }
@@ -365,15 +327,24 @@ void SpelerActieHandler::draagWapen(const std::string& aWapennaam) {
 }
 
 void SpelerActieHandler::wacht() {
-    std::cout << "Executing wacht action..." << std::endl;
+    std::cout << "Je hebt gewacht." << std::endl;
 }
 
 void SpelerActieHandler::consumeer(const std::string& aObjectnaam) {
-    std::cout << "Executing consumeer action for " << aObjectnaam << "..." << std::endl;
+    for (auto it = mSpeler.getConsumeerbareObjecten().begin(); it != mSpeler.getConsumeerbareObjecten().end(); ++it) {
+        if ((*it)->getNaam() == aObjectnaam) {
+            mSpeler.consumeerObject(it->get());
+            mSpeler.getConsumeerbareObjecten().erase(it);
+            std::cout << "Je hebt " << aObjectnaam << " geconsumeerd." << std::endl;
+            return;
+        }
+    }
+    std::cout << "Object " << aObjectnaam << " is niet gevonden in je inventaris." << std::endl;
 }
 
 
 void SpelerActieHandler::godMode() {
-    std::cout << "Executing godMode action..." << std::endl;
+    mSpeler.setLevenspunten(1000);
+    mSpeler.setAanvalskans(100);
+    std::cout << "God mode is ingeschakeld." << std::endl;
 }
-

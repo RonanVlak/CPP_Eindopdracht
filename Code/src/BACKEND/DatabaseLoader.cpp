@@ -1,8 +1,8 @@
 #include "DatabaseLoader.h"
 #include <iostream>
 
-CustomVector<CustomUniquePtr<Locatie>> DatabaseLoader::laadLocaties(const char* databaseBestand, int& count) {
-    CustomVector<CustomUniquePtr<Locatie>> locaties;
+CustomVector<Locatie*> DatabaseLoader::laadLocaties(const char* databaseBestand, int& count) {
+    CustomVector<Locatie*> locaties;
     sqlite3* db;
     sqlite3_stmt* stmt;
 
@@ -29,7 +29,7 @@ CustomVector<CustomUniquePtr<Locatie>> DatabaseLoader::laadLocaties(const char* 
 
         Locatie* locatie = locatieFactory.CreateLocatie(count, naam, beschrijving, beschrijving, "", "", "", "", "", "", "", databaseBestand);
 
-        locaties.push_back(CustomUniquePtr<Locatie>(locatie));
+        locaties.push_back(locatie);
         count++;
     }
 
@@ -39,12 +39,12 @@ CustomVector<CustomUniquePtr<Locatie>> DatabaseLoader::laadLocaties(const char* 
     return locaties;
 }
 
-CustomVector<CustomUniquePtr<Vijand>> DatabaseLoader::laadVijanden(const char* databaseBestand, int& count) {
+CustomVector<Vijand*> DatabaseLoader::laadVijanden(const char* databaseBestand, int& count) {
     sqlite3* db;
     sqlite3_stmt* stmt;
     const char* sql = "SELECT naam, omschrijving, minimumobjecten, maximumobjecten, levenspunten, aanvalskans, minimumschade, maximumschade FROM Vijanden";
 
-    CustomVector<CustomUniquePtr<Vijand>> vijandenVector;
+    CustomVector<Vijand*> vijandenVector;
 
     if (sqlite3_open(databaseBestand, &db) != SQLITE_OK) {
         std::cerr << "Could not open database: " << sqlite3_errmsg(db) << std::endl;
@@ -71,7 +71,7 @@ CustomVector<CustomUniquePtr<Vijand>> DatabaseLoader::laadVijanden(const char* d
         int minimumschade = sqlite3_column_int(stmt, 6);
         int maximumschade = sqlite3_column_int(stmt, 7);
 
-        auto vijand = factory.CreateVijand(naam, beschrijving, minimumobjecten, maximumobjecten, levenspunten, aanvalskans, minimumschade, maximumschade);
+        Vijand* vijand = factory.CreateVijand(naam, beschrijving, minimumobjecten, maximumobjecten, levenspunten, aanvalskans, minimumschade, maximumschade);
         
         // Load random Spelobjecten for the Vijand
         std::random_device rd;
@@ -85,16 +85,14 @@ CustomVector<CustomUniquePtr<Vijand>> DatabaseLoader::laadVijanden(const char* d
         for (int i = 0; i < aantalSpelobjecten; ++i) {
             int randomIndex = objectDis(gen);
             int dummyCount = 0;
-            CustomVector<CustomUniquePtr<Spelobject>> allSpelobjecten = laadSpelobjecten(databaseBestand, dummyCount);
+            CustomVector<Spelobject*> allSpelobjecten = laadSpelobjecten(databaseBestand, dummyCount);
             if (randomIndex < allSpelobjecten.size()) {
-                vijand->voegSpelobjectToe(std::move(allSpelobjecten[randomIndex]));
+                vijand->voegSpelobjectToe(allSpelobjecten[randomIndex]);
             }
         }
 
-        vijandenVector.push_back(std::move(vijand));
-
+        vijandenVector.push_back(vijand);
     }
-
 
     sqlite3_finalize(stmt);
     sqlite3_close(db);
@@ -103,12 +101,12 @@ CustomVector<CustomUniquePtr<Vijand>> DatabaseLoader::laadVijanden(const char* d
     return vijandenVector;
 }
 
-CustomVector<CustomUniquePtr<Spelobject>> DatabaseLoader::laadSpelobjecten(const char* databaseBestand, int& count) {
+CustomVector<Spelobject*> DatabaseLoader::laadSpelobjecten(const char* databaseBestand, int& count) {
     sqlite3* db;
     sqlite3_stmt* stmt;
     const char* sql = "SELECT naam, omschrijving, type, minimumwaarde, maximumwaarde, bescherming FROM Objecten";
 
-    CustomVector<CustomUniquePtr<Spelobject>> spelobjectenVector;
+    CustomVector<Spelobject*> spelobjectenVector;
 
     if (sqlite3_open(databaseBestand, &db) != SQLITE_OK) {
         std::cerr << "Could not open database: " << sqlite3_errmsg(db) << std::endl;
@@ -133,8 +131,8 @@ CustomVector<CustomUniquePtr<Spelobject>> DatabaseLoader::laadSpelobjecten(const
         int maximumwaarde = sqlite3_column_int(stmt, 4);
         int bescherming = sqlite3_column_int(stmt, 5);
 
-        auto object = factory.CreateSpelobject(naam, beschrijving, type, minimumwaarde, maximumwaarde, bescherming);
-        spelobjectenVector.push_back(std::move(object));
+        Spelobject* object = factory.CreateSpelobject(naam, beschrijving, type, minimumwaarde, maximumwaarde, bescherming);
+        spelobjectenVector.push_back(object);
     }
 
     count = spelobjectenVector.size();

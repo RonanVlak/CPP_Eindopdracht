@@ -1,15 +1,12 @@
 #include "Speler.h"
-#include "WapenObject.h"
-#include "WapenrustingObject.h"
-#include "ConsumeerbaarObject.h"
+#include "Vijand.h"
 #include <iostream>
 #include <random>
 
-Speler::Speler()
-    : mNaam(""), mLevenspunten(20), mAanvalskans(40), mGoudstukken(0) {}
-    
-Speler::Speler(const std::string& naam)
-    : mNaam(naam), mLevenspunten(20), mAanvalskans(40), mGoudstukken(0) {}
+Speler::Speler() : mLevenspunten(0), mAanvalskans(0), mGoudstukken(0) {}
+
+Speler::Speler(const std::string& naam, int levenspunten, int aanvalskans)
+    : mNaam(naam), mLevenspunten(levenspunten), mAanvalskans(aanvalskans), mGoudstukken(0) {}
 
 Speler::~Speler() {
     clear();
@@ -28,76 +25,23 @@ Speler& Speler::operator=(const Speler& other) {
 }
 
 Speler::Speler(Speler&& other) noexcept {
-    moveFrom(static_cast<Speler&&>(other));
+    moveFrom(std::move(other));
 }
 
 Speler& Speler::operator=(Speler&& other) noexcept {
     if (this != &other) {
         clear();
-        moveFrom(static_cast<Speler&&>(other));
+        moveFrom(std::move(other));
     }
     return *this;
 }
 
-void Speler::voegConsumeerbaarObjectToe(std::unique_ptr<ConsumeerbaarObject> obj) {
-    mConsumeerbareObjecten.push_back(std::move(obj));
-}
-
-void Speler::verwijderConsumeerbaarObject(const std::string& naam) {
-    auto it = std::remove_if(mConsumeerbareObjecten.begin(), mConsumeerbareObjecten.end(),
-                             [&naam](const std::unique_ptr<ConsumeerbaarObject>& obj) {
-                                 return obj->getNaam() == naam;
-                             });
-    mConsumeerbareObjecten.erase(it, mConsumeerbareObjecten.end());
-}
-
-void Speler::voegWapenToe(std::unique_ptr<WapenObject> obj) {
-    mWapenInventaris.push_back(std::move(obj));
-}
-
-void Speler::verwijderWapenUitInventaris(const std::string& naam) {
-    auto it = std::remove_if(mWapenInventaris.begin(), mWapenInventaris.end(),
-                             [&naam](const std::unique_ptr<WapenObject>& obj) {
-                                 return obj->getNaam() == naam;
-                             });
-    mWapenInventaris.erase(it, mWapenInventaris.end());
-}
-
-void Speler::voegWapenrustingToe(std::unique_ptr<WapenrustingObject> obj) {
-    mWapenrustingInventaris.push_back(std::move(obj));
-}
-
-void Speler::voegObjectToe(std::unique_ptr<Spelobject> obj) {
-    if (auto consumeerbaar = dynamic_cast<ConsumeerbaarObject*>(obj.get())) {
-        voegConsumeerbaarObjectToe(std::unique_ptr<ConsumeerbaarObject>(consumeerbaar));
-    } else if (auto wapen = dynamic_cast<WapenObject*>(obj.get())) {
-        voegWapenToe(std::unique_ptr<WapenObject>(wapen));
-    } else if (auto wapenrusting = dynamic_cast<WapenrustingObject*>(obj.get())) {
-        voegWapenrustingToe(std::unique_ptr<WapenrustingObject>(wapenrusting));
-    } else if (auto goudstukken = dynamic_cast<GoudstukkenObject*>(obj.get())) {
-        voegGoudstukkenToe(goudstukken->getAantalGoudstukken());
-    } else {
-        std::cout << "Onbekend object type: " << obj->getNaam() << std::endl;
-    }           
-}
-
-void Speler::verwijderWapenrustingUitInventaris(const std::string& naam) {
-    auto it = std::remove_if(mWapenrustingInventaris.begin(), mWapenrustingInventaris.end(),
-                             [&naam](const std::unique_ptr<WapenrustingObject>& obj) {
-                                 return obj->getNaam() == naam;
-                             });
-    mWapenrustingInventaris.erase(it, mWapenrustingInventaris.end());
-}
-
-void Speler::verwijderWapen(const std::string& naam) {
-    if (mWapen && mWapen->getNaam() == naam) {
-        mWapen.reset();
-    }
-}
-
 void Speler::verwijderWapenrusting(const std::string& naam) {
-    if (mWapenrusting && mWapenrusting->getNaam() == naam) {
-        mWapenrusting.reset();
+    for (auto it = mWapenrustingInventaris.begin(); it != mWapenrustingInventaris.end(); ++it) {
+        if ((*it)->getNaam() == naam) {
+            mWapenrustingInventaris.erase(it);
+            return;
+        }
     }
 }
 
@@ -105,19 +49,44 @@ void Speler::draagWapen(std::unique_ptr<WapenObject> wapen) {
     mWapen = std::move(wapen);
 }
 
+void Speler::verwijderWapen(const std::string& naam) {
+    for (auto it = mWapenInventaris.begin(); it != mWapenInventaris.end(); ++it) {
+        if ((*it)->getNaam() == naam) {
+            mWapenInventaris.erase(it);
+            return;
+        }
+    }
+}
 void Speler::draagWapenrusting(std::unique_ptr<WapenrustingObject> wapenrusting) {
     mWapenrusting = std::move(wapenrusting);
 }
 
-void Speler::consumeerObject(const std::string& naam) {
-    auto it = std::find_if(mConsumeerbareObjecten.begin(), mConsumeerbareObjecten.end(),
-                           [&naam](const std::unique_ptr<ConsumeerbaarObject>& obj) {
-                               return obj->getNaam() == naam;
-                           });
-    if (it != mConsumeerbareObjecten.end()) {
-        // Apply the effect of the consumable object
-        mLevenspunten += (*it)->getEffect();
-        mConsumeerbareObjecten.erase(it);
+void Speler::consumeerObject(ConsumeerbaarObject* obj) {
+    int effect = obj->getEffect();
+    mLevenspunten += effect;
+    if (mLevenspunten > 100) { // Assuming 100 is the maximum health
+        mLevenspunten = 100;
+    }
+}
+
+void Speler::toonGegevens() const {
+    std::cout << "Naam: " << mNaam << "\nLevenspunten: " << mLevenspunten << "\nAanvalskans: " << mAanvalskans << "\nGoudstukken: " << mGoudstukken << std::endl;
+}
+
+void Speler::voegGoudstukkenToe(int aantal) {
+    mGoudstukken += aantal;
+}
+
+void Speler::voegObjectToe(std::unique_ptr<Spelobject> obj) {
+    if (auto consumeerbaar = dynamic_cast<ConsumeerbaarObject*>(obj.get())) {
+        mConsumeerbareObjecten.push_back(std::unique_ptr<ConsumeerbaarObject>(consumeerbaar));
+        obj.release();
+    } else if (auto wapen = dynamic_cast<WapenObject*>(obj.get())) {
+        mWapenInventaris.push_back(std::unique_ptr<WapenObject>(wapen));
+        obj.release();
+    } else if (auto wapenrusting = dynamic_cast<WapenrustingObject*>(obj.get())) {
+        mWapenrustingInventaris.push_back(std::unique_ptr<WapenrustingObject>(wapenrusting));
+        obj.release();
     }
 }
 
@@ -155,44 +124,13 @@ bool Speler::sla(Vijand* vijand) {
     return false;
 }
 
-void Speler::toonGegevens() const {
-    std::cout << "Naam: " << mNaam << std::endl;
-    std::cout << "Levenspunten: " << mLevenspunten << std::endl;
-    std::cout << "Aanvalskans: " << mAanvalskans << std::endl;
-    std::cout << "Goudstukken: " << mGoudstukken << std::endl;
-    if (mWapen) {
-        std::cout << "Wapen: " << mWapen->getNaam() << std::endl;
-    }
-    if (mWapenrusting) {
-        std::cout << "Wapenrusting: " << mWapenrusting->getNaam() << std::endl;
-    }
-    std::cout << "Consumeerbare Objecten: " << std::endl;
-    for (const auto& obj : mConsumeerbareObjecten) {
-        std::cout << " - " << obj->getNaam() << std::endl;
-    }
-}
-
 void Speler::applyDamage(int damage) {
-    int bescherming = 0;
-    if (mWapenrusting) {
-        bescherming = mWapenrusting->getBescherming();
-    }
-    int actualDamage = damage - bescherming;
-    if (actualDamage < 0) {
-        actualDamage = 0;
-    }
-    mLevenspunten -= actualDamage;
+    mLevenspunten -= damage;
     if (mLevenspunten < 0) {
         mLevenspunten = 0;
     }
-    std::cout << "Je hebt " << damage << " schade ontvangen. Levenspunten: " << mLevenspunten << std::endl;
 }
 
-void Speler::voegGoudstukkenToe(int aantal) {
-    mGoudstukken += aantal;
-}
-
-// Getters
 const std::string& Speler::getNaam() const {
     return mNaam;
 }
@@ -229,8 +167,6 @@ std::unique_ptr<WapenrustingObject>& Speler::getHuidigWapenrusting() {
     return mWapenrusting;
 }
 
-
-// Setters
 void Speler::setNaam(const std::string& naam) {
     mNaam = naam;
 }
@@ -252,15 +188,25 @@ void Speler::copyFrom(const Speler& other) {
     mLevenspunten = other.mLevenspunten;
     mAanvalskans = other.mAanvalskans;
     mGoudstukken = other.mGoudstukken;
+
     if (other.mWapen) {
         mWapen = std::make_unique<WapenObject>(*other.mWapen);
     }
+
     if (other.mWapenrusting) {
         mWapenrusting = std::make_unique<WapenrustingObject>(*other.mWapenrusting);
     }
-    mConsumeerbareObjecten.clear();
+
     for (const auto& obj : other.mConsumeerbareObjecten) {
         mConsumeerbareObjecten.push_back(std::make_unique<ConsumeerbaarObject>(*obj));
+    }
+
+    for (const auto& obj : other.mWapenInventaris) {
+        mWapenInventaris.push_back(std::make_unique<WapenObject>(*obj));
+    }
+
+    for (const auto& obj : other.mWapenrustingInventaris) {
+        mWapenrustingInventaris.push_back(std::make_unique<WapenrustingObject>(*obj));
     }
 }
 
@@ -272,6 +218,8 @@ void Speler::moveFrom(Speler&& other) noexcept {
     mWapen = std::move(other.mWapen);
     mWapenrusting = std::move(other.mWapenrusting);
     mConsumeerbareObjecten = std::move(other.mConsumeerbareObjecten);
+    mWapenInventaris = std::move(other.mWapenInventaris);
+    mWapenrustingInventaris = std::move(other.mWapenrustingInventaris);
 
     other.mLevenspunten = 0;
     other.mAanvalskans = 0;
@@ -282,4 +230,6 @@ void Speler::clear() {
     mWapen.reset();
     mWapenrusting.reset();
     mConsumeerbareObjecten.clear();
+    mWapenInventaris.clear();
+    mWapenrustingInventaris.clear();
 }

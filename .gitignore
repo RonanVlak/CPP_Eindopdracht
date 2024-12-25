@@ -47,3 +47,4 @@
 
 #ignore build folder
 Code/build/
+Code/external/*

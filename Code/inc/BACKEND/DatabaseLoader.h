@@ -5,7 +5,6 @@
 #include "Vijand.h"
 #include "SpelobjectFactory.h"
 #include "VijandFactory.h"
-#include "CustomUniquePtr.h"
 #include "CustomVector.h"
 #include "Locatie.h"
 #include <sqlite3.h>
@@ -17,9 +16,9 @@ public:
     DatabaseLoader() = default;
     ~DatabaseLoader() = default;
 
-    CustomVector<CustomUniquePtr<Vijand>> laadVijanden(const char* databaseBestand, int& count);
-    CustomVector<CustomUniquePtr<Spelobject>> laadSpelobjecten(const char* databaseBestand, int& count);
-    CustomVector<CustomUniquePtr<Locatie>> laadLocaties(const char* databaseBestand, int& count);
+    CustomVector<Vijand*> laadVijanden(const char* databaseBestand, int& count);
+    CustomVector<Spelobject*> laadSpelobjecten(const char* databaseBestand, int& count);
+    CustomVector<Locatie*> laadLocaties(const char* databaseBestand, int& count);
 };
 
 #endif // DATABASELOADER_H

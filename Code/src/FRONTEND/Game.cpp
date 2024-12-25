@@ -4,13 +4,14 @@
 #include "BACKEND/LocatieFactory.h"
 #include <iostream>
 #include <filesystem>
+#include <algorithm>
 
 namespace fs = std::filesystem;
 
 Game::Game() 
     : mCurrentState(State::MainMenu),
       mSpelwereld(std::make_unique<Spelwereld>()),
-      mSpeler(std::make_unique<Speler>()),
+      mSpeler(std::make_unique<Speler>("", 100, 50)), // Initialize Speler with default values
       mGebruikersInterface(std::make_unique<GebruikersInterface>()),
       mSpelerActieHandler(std::make_unique<SpelerActieHandler>(mSpelwereld, mSpeler, mGebruikersInterface)) {
 }
@@ -182,19 +183,20 @@ void Game::laadKerkerVanXML(const std::string& xmlBestand, const std::string& da
 void Game::genereerRandomKerker() {
     std::cout << "Random dungeon generated!" << std::endl;
 }
+
 void Game::initSpeler(const std::string& naam, const std::string& dbPath) {
     mSpeler->setNaam(naam);
     DatabaseLoader dbLoader;
     int objectCount = 0;
 
     // Load all spelobjecten from the database
-    CustomVector<CustomUniquePtr<Spelobject>> spelobjecten = dbLoader.laadSpelobjecten(dbPath.c_str(), objectCount);
+    CustomVector<Spelobject*> spelobjecten = dbLoader.laadSpelobjecten(dbPath.c_str(), objectCount);
     const char* wapenNaam = "dolk"; 
     // Find the item named "Dolk"
     for (int i = 0; i < spelobjecten.size(); ++i) {
         if (strcmp(spelobjecten[i]->getNaam(), wapenNaam) == 0) {
             // Convert Spelobject to WapenObject using dynamic casting
-            WapenObject* wapenPtr = dynamic_cast<WapenObject*>(spelobjecten[i].release());
+            WapenObject* wapenPtr = dynamic_cast<WapenObject*>(spelobjecten[i]);
             if (wapenPtr) {
                 std::unique_ptr<WapenObject> uniqueDolk(wapenPtr);
                 mSpeler->draagWapen(std::move(uniqueDolk));
@@ -206,66 +208,56 @@ void Game::initSpeler(const std::string& naam, const std::string& dbPath) {
 
     std::cout << "Speler geinitialiseerd: " << naam << std::endl;
 }
+
 void Game::verwerkActie(const std::string& actie) {
     mSpelerActieHandler->verwerkActie(actie);
 }
-
 
 void Game::genereerRandomKerker(const std::string& databaseBestand) {
     DatabaseLoader dbLoader;
     int count = 0;
 
     // Load locations from the database
-    CustomVector<CustomUniquePtr<Locatie>> customLocaties = dbLoader.laadLocaties(databaseBestand.c_str(), count);
-    std::vector<std::unique_ptr<Locatie>> locaties;
-    for (int i = 0; i < customLocaties.size(); ++i) {
-        locaties.push_back(std::unique_ptr<Locatie>(customLocaties[i].release()));
-    }
+    CustomVector<Locatie*> locaties = dbLoader.laadLocaties(databaseBestand.c_str(), count);
 
     // Load all enemies and objects from the database
     int vijandCount = 0;
-    CustomVector<CustomUniquePtr<Vijand>> customVijanden = dbLoader.laadVijanden(databaseBestand.c_str(), vijandCount);
-    std::vector<std::unique_ptr<Vijand>> vijanden;
-    for (int i = 0; i < customVijanden.size(); ++i) {
-        vijanden.push_back(std::unique_ptr<Vijand>(customVijanden[i].release()));
-    }
+    CustomVector<Vijand*> vijanden = dbLoader.laadVijanden(databaseBestand.c_str(), vijandCount);
 
     int objectCount = 0;
-    CustomVector<CustomUniquePtr<Spelobject>> customObjecten = dbLoader.laadSpelobjecten(databaseBestand.c_str(), objectCount);
-    std::vector<std::unique_ptr<Spelobject>> objecten;
-    for (int i = 0; i < customObjecten.size(); ++i) {
-        objecten.push_back(std::unique_ptr<Spelobject>(customObjecten[i].release()));
-    }
+    CustomVector<Spelobject*> objecten = dbLoader.laadSpelobjecten(databaseBestand.c_str(), objectCount);
+
     // Randomly select a subset of locations
     std::random_device rd;
     std::mt19937 gen(rd());
+    int locatiesSize = locaties.size();
     std::shuffle(locaties.begin(), locaties.end(), gen);
 
     // Add the selected locations to the game world and assign sequential IDs
     for (int i = 0; i < std::min(10, static_cast<int>(locaties.size())); ++i) {
-        Locatie* locatie = locaties[i].release();
+        Locatie* locatie = locaties[i];
         locatie->setID(i); // Assign sequential IDs from 1 to 10
 
         // Add random enemies to the location
-        if (!vijanden.empty()) {
+        if (!vijanden.isEmpty()) {
             std::uniform_int_distribution<> vijandDis(0, vijanden.size() - 1);
             int numEnemies = vijandDis(gen) % 2 + 1; // Random number of enemies between 1 and 3
             for (int j = 0; j < numEnemies; ++j) {
                 int randomIndex = vijandDis(gen);
                 if (randomIndex >= 0 && randomIndex < vijanden.size()) {
-                    locatie->voegVijandToe(CustomUniquePtr<Vijand>(vijanden[randomIndex].release()));
+                    locatie->voegVijandToe(vijanden[randomIndex]);
                 }
             }
         }
 
         // Add random objects to the location
-        if (!objecten.empty()) {
+        if (!objecten.isEmpty()) {
             std::uniform_int_distribution<> objectDis(0, objecten.size() - 1);
             int numObjects = objectDis(gen) % 3 + 1; // Random number of objects between 1 and 3
             for (int j = 0; j < numObjects; ++j) {
                 int randomIndex = objectDis(gen);
                 if (randomIndex >= 0 && randomIndex < objecten.size()) {
-                    locatie->voegZichtbaarObjectToe(CustomUniquePtr<Spelobject>(objecten[randomIndex].release()));
+                    locatie->voegZichtbaarObjectToe(objecten[randomIndex]);
                 }
             }
         }
@@ -345,6 +337,7 @@ void Game::genereerRandomKerker(const std::string& databaseBestand) {
 
     std::cout << "Random dungeon generated!" << std::endl;
 }
+
 void Game::listFilesInDirectory(const std::string& directory) {
     for (const auto& entry : fs::directory_iterator(directory)) {
         if (entry.is_regular_file() && entry.path().extension() == ".xml") {

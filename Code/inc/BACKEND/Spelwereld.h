@@ -1,7 +1,7 @@
 #ifndef SPELWERELD_H
 #define SPELWERELD_H
 
-#include "Locatie.h"	
+#include "Locatie.h"
 #include <random>
 
 class Spelwereld {
@@ -29,11 +29,8 @@ private:
     void moveFrom(Spelwereld&& other) noexcept;
     CustomVector<Locatie*> getAdjacentLocations(Locatie* locatie);
 private:
-    //Locatie** mLocaties;
-
-    CustomVector<CustomUniquePtr<Locatie>> mLocaties;
+    CustomVector<Locatie*> mLocaties;
     Locatie* mCurrentLocatie;
-    int mLocatiesCount;
 };
 
 #endif // SPELWERELD_H

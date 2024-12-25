@@ -5,7 +5,6 @@
 #include "VijandFactory.h"
 #include "SpelobjectFactory.h"
 #include "DatabaseLoader.h"
-#include "CustomUniquePtr.h"
 #include "CustomVector.h"
 
 class LocatieFactory {

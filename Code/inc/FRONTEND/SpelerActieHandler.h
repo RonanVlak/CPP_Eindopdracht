@@ -15,7 +15,7 @@
 
 class SpelerActieHandler {
 public:
-    SpelerActieHandler( std::unique_ptr<Spelwereld>& aSpelwereld, std::unique_ptr<Speler>& aSpeler, std::unique_ptr<GebruikersInterface>& aGebruikersInterface);
+    SpelerActieHandler(std::unique_ptr<Spelwereld>& aSpelwereld, std::unique_ptr<Speler>& aSpeler, std::unique_ptr<GebruikersInterface>& aGebruikersInterface);
     ~SpelerActieHandler();
 
     void verwerkActie(const std::string& aActie);

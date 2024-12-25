@@ -3,7 +3,6 @@
 
 #include "Spelobject.h"
 #include "CustomVector.h"
-#include "CustomUniquePtr.h"
 class Locatie;
 
 class Vijand {
@@ -14,12 +13,12 @@ public:
     Vijand& operator=(const Vijand& other);
     Vijand(Vijand&& other) noexcept;
     Vijand& operator=(Vijand&& other) noexcept;
-public:
+
     void verplaats(Locatie* locatie);
     bool isVerslagen() const;
     void ontvangSchade(int schade);
     void bekijk() const;
-    void voegSpelobjectToe(CustomUniquePtr<Spelobject> spelobject);
+    void voegSpelobjectToe(Spelobject* spelobject);
     void removeSpelobject(Spelobject* spelobject);
     Spelobject* getSpelobject(int index) const;
     int getAantalSpelobjecten() const;
@@ -45,7 +44,7 @@ private:
     int mAanvalskans;
     int mAanvalsschadeMin;
     int mAanvalsschadeMax;
-    CustomVector<CustomUniquePtr<Spelobject>> mSpelobjecten;
+    CustomVector<Spelobject*> mSpelobjecten;
 };
 
 #endif // VIJAND_H

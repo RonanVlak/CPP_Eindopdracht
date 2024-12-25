@@ -22,21 +22,22 @@ Locatie* LocatieFactory::CreateLocatie(int id, const char* naam, const char* alg
 
     DatabaseLoader dbLoader;
     int count = 0;
-     // Add enemies
+
+    // Add enemies
     if (vijanden && strlen(vijanden) > 0) {
         char vijandNaam[256];
         const char* vijandStart = vijanden;
-        CustomVector<CustomUniquePtr<Vijand>> vijandenVector = dbLoader.laadVijanden(databaseBestand, count);
+        CustomVector<Vijand*> vijandenVector = dbLoader.laadVijanden(databaseBestand, count);
         int vijandId = 1;
 
         while (sscanf(vijandStart, "%255[^;];", vijandNaam) == 1) {
             for (int i = 0; i < vijandenVector.size(); ++i) {
-                if (vijandenVector[i].get() != nullptr && strcmp(vijandenVector[i]->getNaam(), vijandNaam) == 0) {
+                if (vijandenVector[i] != nullptr && strcmp(vijandenVector[i]->getNaam(), vijandNaam) == 0) {
                     char newVijandNaam[256];
                     snprintf(newVijandNaam, sizeof(newVijandNaam) - 1, "%.245s%d", vijandNaam, vijandId++);
                     newVijandNaam[sizeof(newVijandNaam) - 1] = '\0';   
                     vijandenVector[i]->setNaam(newVijandNaam);
-                    locatie->voegVijandToe(std::move(vijandenVector[i]));
+                    locatie->voegVijandToe(vijandenVector[i]);
                     vijandenVector[i] = nullptr;  // Mark as moved
                     break;
                 }
@@ -51,17 +52,17 @@ Locatie* LocatieFactory::CreateLocatie(int id, const char* naam, const char* alg
     if (objectenVerborgen && strlen(objectenVerborgen) > 0) {
         char objectNaam[256];
         const char* objectStart = objectenVerborgen;
-        CustomVector<CustomUniquePtr<Spelobject>> verborgenObjectenVector = dbLoader.laadSpelobjecten(databaseBestand, count);
+        CustomVector<Spelobject*> verborgenObjectenVector = dbLoader.laadSpelobjecten(databaseBestand, count);
         int objectId = 1;
 
         while (sscanf(objectStart, "%255[^;];", objectNaam) == 1) {
             for (int i = 0; i < verborgenObjectenVector.size(); ++i) {
-                if (verborgenObjectenVector[i].get() != nullptr && strcmp(verborgenObjectenVector[i]->getNaam(), objectNaam) == 0) {
+                if (verborgenObjectenVector[i] != nullptr && strcmp(verborgenObjectenVector[i]->getNaam(), objectNaam) == 0) {
                     char newObjectNaam[256];
                     snprintf(newObjectNaam, sizeof(newObjectNaam) -1, "%.245s%d", objectNaam, objectId++);
                     newObjectNaam[sizeof(newObjectNaam) - 1] = '\0'; // Ensure null-termination
                     verborgenObjectenVector[i]->setNaam(newObjectNaam);
-                    locatie->voegVerborgenObjectToe(std::move(verborgenObjectenVector[i]));
+                    locatie->voegVerborgenObjectToe(verborgenObjectenVector[i]);
                     verborgenObjectenVector[i] = nullptr;  // Mark as moved
                     break;
                 }
@@ -76,17 +77,17 @@ Locatie* LocatieFactory::CreateLocatie(int id, const char* naam, const char* alg
     if (objectenZichtbaar && strlen(objectenZichtbaar) > 0) {
         char objectNaam[256];
         const char* objectStart = objectenZichtbaar;
-        CustomVector<CustomUniquePtr<Spelobject>> zichtbareObjectenVector = dbLoader.laadSpelobjecten(databaseBestand, count);
+        CustomVector<Spelobject*> zichtbareObjectenVector = dbLoader.laadSpelobjecten(databaseBestand, count);
         int objectId = 1;
 
         while (sscanf(objectStart, "%255[^;];", objectNaam) == 1) {
             for (int i = 0; i < zichtbareObjectenVector.size(); ++i) {
-                if (zichtbareObjectenVector[i].get() != nullptr && strcmp(zichtbareObjectenVector[i]->getNaam(), objectNaam) == 0) {
+                if (zichtbareObjectenVector[i] != nullptr && strcmp(zichtbareObjectenVector[i]->getNaam(), objectNaam) == 0) {
                     char newObjectNaam[256];
                     snprintf(newObjectNaam, sizeof(newObjectNaam) -1, "%.245s%d", objectNaam, objectId++);
                     newObjectNaam[sizeof(newObjectNaam) - 1] = '\0'; // Ensure null-termination
                     zichtbareObjectenVector[i]->setNaam(newObjectNaam);
-                    locatie->voegZichtbaarObjectToe(std::move(zichtbareObjectenVector[i]));
+                    locatie->voegZichtbaarObjectToe(zichtbareObjectenVector[i]);
                     zichtbareObjectenVector[i] = nullptr;  // Mark as moved
                     break;
                 }

@@ -4,7 +4,6 @@
 #include <cstring>
 #include "Spelobject.h"
 #include "CustomVector.h"
-#include "CustomUniquePtr.h"
 #include "Vijand.h"
 
 class Locatie {
@@ -16,10 +15,10 @@ public:
     Locatie(Locatie&& other) noexcept;
     Locatie& operator=(Locatie&& other) noexcept;
 
-    void voegZichtbaarObjectToe(CustomUniquePtr<Spelobject> object);
-    void voegVerborgenObjectToe(CustomUniquePtr<Spelobject> object);
+    void voegZichtbaarObjectToe(Spelobject* object);
+    void voegVerborgenObjectToe(Spelobject* object);
     void voegUitgangToe(const char* richting, int locatieId);
-    void voegVijandToe(CustomUniquePtr<Vijand> aVijand);
+    void voegVijandToe(Vijand* aVijand);
     void verwijderVijand(Vijand* vijand);
 
     const char* getNaam() const;
@@ -60,12 +59,11 @@ private:
     int mOost;
     int mZuid;
     int mWest;
-    CustomVector<CustomUniquePtr<Spelobject>> mVerborgenObjecten;
-    CustomVector<CustomUniquePtr<Spelobject>>  mZichtbareObjecten;
-    CustomVector<CustomUniquePtr<Vijand>>  mVijanden;
-    Locatie** mUitgangen;
-    char** mRichtingen;
-    int mUitgangenCount;
+    CustomVector<Spelobject*> mVerborgenObjecten;
+    CustomVector<Spelobject*> mZichtbareObjecten;
+    CustomVector<Vijand*> mVijanden;
+    CustomVector<Locatie*> mUitgangen;
+    CustomVector<char*> mRichtingen;
 };
 
 #endif // LOCATIE_H

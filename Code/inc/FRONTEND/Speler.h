@@ -4,41 +4,27 @@
 #include <string>
 #include <vector>
 #include <memory>
-#include <algorithm>
-#include "CustomUniquePtr.h"
-#include "Vijand.h"
 #include "Spelobject.h"
-#include "GoudstukkenObject.h"
+#include "ConsumeerbaarObject.h"
 #include "WapenObject.h"
 #include "WapenrustingObject.h"
-#include "ConsumeerbaarObject.h"
-
-
-class WapenObject;
-class WapenrustingObject;
-class ConsumeerbaarObject;
+#include "Vijand.h"
 
 class Speler {
 public:
     Speler();
-    Speler(const std::string& naam);
+    Speler(const std::string& naam, int levenspunten, int aanvalskans);
     ~Speler();
     Speler(const Speler& other);
     Speler& operator=(const Speler& other);
     Speler(Speler&& other) noexcept;
     Speler& operator=(Speler&& other) noexcept;
 
-    void voegConsumeerbaarObjectToe(std::unique_ptr<ConsumeerbaarObject> obj);
-    void voegWapenToe(std::unique_ptr<WapenObject> obj);
-    void voegWapenrustingToe(std::unique_ptr<WapenrustingObject> obj);
-    void verwijderConsumeerbaarObject(const std::string& naam);
-    void draagWapen(std::unique_ptr<WapenObject> wapen);
-    void verwijderWapenUitInventaris(const std::string& naam);
-    void verwijderWapenrustingUitInventaris(const std::string& naam);
-    void verwijderWapen(const std::string& naam);
     void verwijderWapenrusting(const std::string& naam);
     void draagWapenrusting(std::unique_ptr<WapenrustingObject> wapenrusting);
-    void consumeerObject(const std::string& naam);
+    void draagWapen(std::unique_ptr<WapenObject> wapen);
+    void verwijderWapen(const std::string& naam);
+    void consumeerObject(ConsumeerbaarObject* obj);
     void toonGegevens() const;
     void voegGoudstukkenToe(int aantal);
     void voegObjectToe(std::unique_ptr<Spelobject> obj);

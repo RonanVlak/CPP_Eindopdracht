@@ -40,7 +40,7 @@ Vijand& Vijand::operator=(Vijand&& other) noexcept {
 }
 
 void Vijand::verplaats(Locatie* locatie) {
-    // Implementation of verplaats method
+    
 }
 
 void Vijand::ontvangSchade(int schade) {
@@ -74,13 +74,14 @@ void Vijand::bekijk() const {
     }
 }
 
-void Vijand::voegSpelobjectToe(CustomUniquePtr<Spelobject> spelobject) {
-    mSpelobjecten.push_back(std::move(spelobject));
+void Vijand::voegSpelobjectToe(Spelobject* spelobject) {
+    mSpelobjecten.push_back(spelobject);
 }
 
 void Vijand::removeSpelobject(Spelobject* spelobject) {
     for (int i = 0; i < mSpelobjecten.size(); ++i) {
-        if (mSpelobjecten[i].get() == spelobject) {
+        if (mSpelobjecten[i] == spelobject) {
+            delete mSpelobjecten[i];
             mSpelobjecten.erase(i);
             return;
         }
@@ -113,7 +114,7 @@ Spelobject* Vijand::getSpelobject(int index) const {
     if (index < 0 || index >= mSpelobjecten.size()) {
         return nullptr;
     }
-    return mSpelobjecten[index].get();
+    return mSpelobjecten[index];
 }
 
 int Vijand::getAantalSpelobjecten() const {
@@ -172,4 +173,8 @@ void Vijand::moveFrom(Vijand&& other) noexcept {
 void Vijand::clear() {
     delete[] mNaam;
     delete[] mBeschrijving;
+    for (int i = 0; i < mSpelobjecten.size(); ++i) {
+        delete mSpelobjecten[i];
+    }
+    mSpelobjecten.clear();
 }

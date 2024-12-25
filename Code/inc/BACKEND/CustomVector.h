@@ -1,30 +1,41 @@
-#ifndef CUSTOMVECTOR_H
-#define CUSTOMVECTOR_H
+#pragma once
+#include "CustomVector.h"
+#include <stdexcept>
+#include <iostream>
 
-#include "CustomUniquePtr.h"
+#include <cstddef>
+#include <stdexcept>
 
-template <typename T>
-class CustomVector {
+template <typename T> class CustomVector {
+private:
+    T* data;
+    std::size_t vectorSize;
+    std::size_t capacity;
+
+    void resize(std::size_t newCapacity);
+
 public:
     CustomVector();
+    CustomVector(const CustomVector& other);
+    CustomVector& operator=(const CustomVector& other);
     ~CustomVector();
 
-    void push_back(T element);  // Accept T directly
-    void erase(int index);
-    T& operator[](int index) const;  // Return T& instead of T*
-    int size() const;
-    bool empty() const;
+    void push_back(const T& value);
+    void pop_back();
+    void erase(std::size_t index); // New erase function
+
+    T& operator[](std::size_t index);
+    const T& operator[](std::size_t index) const;
+
+    std::size_t size() const;
+    std::size_t getCapacity() const;
+
     T* begin();
     T* end();
+    const T* begin() const;
+    const T* end() const;
+    bool isEmpty() const;
     void clear();
-private:
-    T* mData;  // Store T directly, not CustomUniquePtr<T>
-    int mSize;
-    int mCapacity;
-
-    void resize(int newCapacity);
 };
 
 #include "../../src/BACKEND/CustomVector.tpp"
-
-#endif // CUSTOMVECTOR_H

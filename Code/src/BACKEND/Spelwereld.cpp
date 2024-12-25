@@ -34,13 +34,13 @@ Spelwereld& Spelwereld::operator=(Spelwereld&& other) noexcept {
 }
 
 void Spelwereld::voegLocatieToe(Locatie* locatie) {
-    mLocaties.push_back(CustomUniquePtr<Locatie>(locatie));
+    mLocaties.push_back(locatie);
 }
 
 Locatie* Spelwereld::getLocatie(const char* naam) {
     for (int i = 0; i < mLocaties.size(); ++i) {
         if (std::strcmp(mLocaties[i]->getNaam(), naam) == 0) {
-            return mLocaties[i].get();
+            return mLocaties[i];
         }
     }
     return nullptr;
@@ -57,7 +57,7 @@ void Spelwereld::setCurrentLocatie(Locatie* locatie) {
 Locatie* Spelwereld::getLocatieById(int id) const {
     for (int i = 0; i < mLocaties.size(); ++i) {
         if (mLocaties[i]->getId() == id) {
-            return mLocaties[i].get();
+            return mLocaties[i];
         }
     }
     return nullptr;
@@ -67,7 +67,7 @@ Locatie* Spelwereld::getLocatieByIndex(int index) const {
     if (index < 0 || index >= mLocaties.size()) {
         return nullptr;
     }
-    return mLocaties[index].get();
+    return mLocaties[index];
 }
 
 int Spelwereld::getLocatiesCount() const {
@@ -109,7 +109,7 @@ void Spelwereld::verplaatsVijanden() {
                     if (adjacentLocations.size() > 0) {
                         std::uniform_int_distribution<> locDis(0, adjacentLocations.size() - 1);
                         Locatie* newLocation = adjacentLocations[locDis(gen)];
-                        newLocation->voegVijandToe(CustomUniquePtr<Vijand>(vijand));
+                        newLocation->voegVijandToe(vijand);
                         std::cout << vijand->getNaam() << " is verplaatst naar " << newLocation->getNaam() << "." << std::endl;
                         currentLocation->verwijderVijand(vijand);
                     }
@@ -122,31 +122,31 @@ void Spelwereld::verplaatsVijanden() {
 CustomVector<Locatie*> Spelwereld::getAdjacentLocations(Locatie* locatie) {
     CustomVector<Locatie*> adjacentLocations;
     if (locatie->getNoord() != -1) {
-        adjacentLocations.push_back(mLocaties[locatie->getNoord()].get());
+        adjacentLocations.push_back(getLocatieById(locatie->getNoord()));
     }
     if (locatie->getOost() != -1) {
-        adjacentLocations.push_back(mLocaties[locatie->getOost()].get());
+        adjacentLocations.push_back(getLocatieById(locatie->getOost()));
     }
     if (locatie->getZuid() != -1) {
-        adjacentLocations.push_back(mLocaties[locatie->getZuid()].get());
+        adjacentLocations.push_back(getLocatieById(locatie->getZuid()));
     }
     if (locatie->getWest() != -1) {
-        adjacentLocations.push_back(mLocaties[locatie->getWest()].get());
+        adjacentLocations.push_back(getLocatieById(locatie->getWest()));
     }
     return adjacentLocations;
 }
 
 void Spelwereld::clear() {
     for (int i = 0; i < mLocaties.size(); ++i) {
-        mLocaties[i].reset();
+        delete mLocaties[i];
     }
-   // mLocaties.clear();
+    mLocaties.clear();
 }
 
 void Spelwereld::copyFrom(const Spelwereld& other) {
     clear();
     for (int i = 0; i < other.mLocaties.size(); ++i) {
-        mLocaties.push_back(CustomUniquePtr<Locatie>(new Locatie(*other.mLocaties[i])));
+        mLocaties.push_back(new Locatie(*other.mLocaties[i]));
     }
     mCurrentLocatie = other.mCurrentLocatie;
 }

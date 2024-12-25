@@ -6,7 +6,7 @@
             "type": "cppdbg",
             "request": "launch",
             "preLaunchTask": "CMake Build",
-            "program": "${workspaceFolder}/Code/build/bin",
+            "program": "${workspaceFolder}/Code/build/bin/KerkersEnDraken",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
@@ -20,7 +20,7 @@
                     "ignoreFailures": true
                 }
             ],
-            "miDebuggerPath": "${env:OS} == 'Windows_NT' ? 'C:/mingw-w64/bin/gdb.exe' : '/usr/bin/gdb'",
+            //"miDebuggerPath": "${env:OS} == 'Windows_NT' ? 'C:/mingw-w64/bin/gdb.exe' : '/usr/bin/gdb'",
             "logging": {
                 "engineLogging": false,
                 "trace": false,

@@ -5,7 +5,7 @@
 
 Locatie::Locatie(int id, const char* naam, const char* algemeneOmschrijving, const char* gedetailleerdeOmschrijving)
     : mId(id), mNaam(nullptr), mBeschrijving(nullptr), mGedetailleerdeBeschrijving(nullptr),
-      mNoord(-1), mOost(-1), mZuid(-1), mWest(-1), mRichtingen(nullptr), mUitgangen(nullptr), mUitgangenCount(0) {
+      mNoord(-1), mOost(-1), mZuid(-1), mWest(-1) {
     mNaam = new char[strlen(naam) + 1];
     strcpy(mNaam, naam);
     mBeschrijving = new char[strlen(algemeneOmschrijving) + 1];
@@ -57,14 +57,8 @@ void Locatie::copyFrom(const Locatie& other) {
     mVerborgenObjecten = other.mVerborgenObjecten;
     mZichtbareObjecten = other.mZichtbareObjecten;
     mVijanden = other.mVijanden;
-    mUitgangenCount = other.mUitgangenCount;
-    mRichtingen = new char*[mUitgangenCount];
-    mUitgangen = new Locatie*[mUitgangenCount];
-    for (int i = 0; i < mUitgangenCount; ++i) {
-        mRichtingen[i] = new char[strlen(other.mRichtingen[i]) + 1];
-        strcpy(mRichtingen[i], other.mRichtingen[i]);
-        mUitgangen[i] = other.mUitgangen[i];
-    }
+    mUitgangen = other.mUitgangen;
+    mRichtingen = other.mRichtingen;
 }
 
 void Locatie::moveFrom(Locatie&& other) noexcept {
@@ -79,16 +73,12 @@ void Locatie::moveFrom(Locatie&& other) noexcept {
     mVerborgenObjecten = std::move(other.mVerborgenObjecten);
     mZichtbareObjecten = std::move(other.mZichtbareObjecten);
     mVijanden = std::move(other.mVijanden);
-    mUitgangenCount = other.mUitgangenCount;
-    mRichtingen = other.mRichtingen;
-    mUitgangen = other.mUitgangen;
+    mUitgangen = std::move(other.mUitgangen);
+    mRichtingen = std::move(other.mRichtingen);
 
     other.mNaam = nullptr;
     other.mBeschrijving = nullptr;
     other.mGedetailleerdeBeschrijving = nullptr;
-    other.mRichtingen = nullptr;
-    other.mUitgangen = nullptr;
-    other.mUitgangenCount = 0;
 }
 
 void Locatie::clear() {
@@ -96,23 +86,31 @@ void Locatie::clear() {
     delete[] mBeschrijving;
     delete[] mGedetailleerdeBeschrijving;
 
-    for (int i = 0; i < mUitgangenCount; ++i) {
+    for (std::size_t i = 0; i < mRichtingen.size(); ++i) {
         delete[] mRichtingen[i];
     }
-    delete[] mRichtingen;
-    delete[] mUitgangen;
+
+    for (std::size_t i = 0; i < mVerborgenObjecten.size(); ++i) {
+        delete mVerborgenObjecten[i];
+    }
+    for (std::size_t i = 0; i < mZichtbareObjecten.size(); ++i) {
+        delete mZichtbareObjecten[i];
+    }
+    for (std::size_t i = 0; i < mVijanden.size(); ++i) {
+        delete mVijanden[i];
+    }
 }
 
-void Locatie::voegVijandToe(CustomUniquePtr<Vijand> aVijand) {
-    mVijanden.push_back(std::move(aVijand));
+void Locatie::voegVijandToe(Vijand* aVijand) {
+    mVijanden.push_back(aVijand);
 }
 
-void Locatie::voegZichtbaarObjectToe(CustomUniquePtr<Spelobject> object) {
-    mZichtbareObjecten.push_back(std::move(object));
+void Locatie::voegZichtbaarObjectToe(Spelobject* object) {
+    mZichtbareObjecten.push_back(object);
 }
 
-void Locatie::voegVerborgenObjectToe(CustomUniquePtr<Spelobject> object) {
-    mVerborgenObjecten.push_back(std::move(object));
+void Locatie::voegVerborgenObjectToe(Spelobject* object) {
+    mVerborgenObjecten.push_back(object);
 }
 
 void Locatie::voegUitgangToe(const char* richting, int locatieId) {
@@ -128,8 +126,9 @@ void Locatie::voegUitgangToe(const char* richting, int locatieId) {
 }
 
 void Locatie::verwijderVijand(Vijand* vijand) {
-    for (int i = 0; i < mVijanden.size(); ++i) {
-        if (mVijanden[i].get() == vijand) {
+    for (std::size_t i = 0; i < mVijanden.size(); ++i) {
+        if (mVijanden[i] == vijand) {
+            delete mVijanden[i];
             mVijanden.erase(i);
             return;
         }
@@ -184,14 +183,14 @@ Spelobject* Locatie::getVerborgenObject(int index) const {
     if (index < 0 || index >= mVerborgenObjecten.size()) {
         return nullptr;
     }
-    return mVerborgenObjecten[index].get();
+    return mVerborgenObjecten[index];
 }
 
 Spelobject* Locatie::getZichtbaarObject(int index) const {
     if (index < 0 || index >= mZichtbareObjecten.size()) {
         return nullptr;
     }
-    return mZichtbareObjecten[index].get();
+    return mZichtbareObjecten[index];
 }
 
 int Locatie::getUitgang(const char* richting) const {
@@ -211,7 +210,7 @@ Vijand* Locatie::getVijand(int index) const {
     if (index < 0 || index >= mVijanden.size()) {
         return nullptr;
     }
-    return mVijanden[index].get();
+    return mVijanden[index];
 }
 
 int Locatie::getZichtbareObjectenCount() const {
@@ -227,28 +226,28 @@ int Locatie::getVijandenCount() const {
 }
 
 Spelobject* Locatie::getZichtbaarObjectByName(const std::string& naam) const {
-    for (int i = 0; i < mZichtbareObjecten.size(); i++) {
+    for (std::size_t i = 0; i < mZichtbareObjecten.size(); i++) {
         if (mZichtbareObjecten[i]->getNaam() == naam) {
-            return mZichtbareObjecten[i].get();
+            return mZichtbareObjecten[i];
         }
     }
     return nullptr;
 }
 
 Vijand* Locatie::getVijandByName(const std::string& naam) const {
-    for (int i = 0; i < mVijanden.size(); ++i) {
+    for (std::size_t i = 0; i < mVijanden.size(); ++i) {
         const char* vijandNaam = mVijanden[i]->getNaam();
         const char* verslagenPos = strstr(vijandNaam, " [Verslagen]");
         if (verslagenPos != nullptr) {
             // Compare only the part before "[Verslagen]"
             size_t baseNameLength = verslagenPos - vijandNaam;
             if (strncmp(vijandNaam, naam.c_str(), baseNameLength) == 0 && naam[baseNameLength] == '\0') {
-                return mVijanden[i].get();
+                return mVijanden[i];
             }
         } else {
             // Compare the full name
             if (strcmp(vijandNaam, naam.c_str()) == 0) {
-                return mVijanden[i].get();
+                return mVijanden[i];
             }
         }
     }
@@ -258,10 +257,11 @@ Vijand* Locatie::getVijandByName(const std::string& naam) const {
 void Locatie::setID(int id) {
     mId = id;
 }
+
 void Locatie::verplaatsVerborgenNaarZichtbaar(Spelobject* object) {
-    for (int i = 0; i < mVerborgenObjecten.size(); ++i) {
-        if (mVerborgenObjecten[i].get() == object) {
-            voegZichtbaarObjectToe(std::move(mVerborgenObjecten[i]));
+    for (std::size_t i = 0; i < mVerborgenObjecten.size(); ++i) {
+        if (mVerborgenObjecten[i] == object) {
+            voegZichtbaarObjectToe(mVerborgenObjecten[i]);
             mVerborgenObjecten.erase(i);
             return;
         }
@@ -269,8 +269,9 @@ void Locatie::verplaatsVerborgenNaarZichtbaar(Spelobject* object) {
 }
 
 void Locatie::verwijderZichtbaarObject(Spelobject* object) {
-    for (int i = 0; i < mZichtbareObjecten.size(); ++i) {
-        if (mZichtbareObjecten[i].get() == object) {
+    for (std::size_t i = 0; i < mZichtbareObjecten.size(); ++i) {
+        if (mZichtbareObjecten[i] == object) {
+            delete mZichtbareObjecten[i];
             mZichtbareObjecten.erase(i);
             return;
         }
@@ -283,29 +284,14 @@ void Locatie::printZichtbareObjecten() const {
         return;
     }
 
-    for (int i = 0; i < mZichtbareObjecten.size(); ++i) {
-        Spelobject* obj = mZichtbareObjecten[i].get();
+    for (std::size_t i = 0; i < mZichtbareObjecten.size(); ++i) {
+        Spelobject* obj = mZichtbareObjecten[i];
         if (obj) {
             std::cout << "  - " << obj->getNaam() << std::endl;
         }
     }
 }
 
-// void Locatie::listExits() const {
-
-//     if (mNoord != -1) {
-//         std::cout << "  noord" << std::endl;
-//     }
-//     if (mOost != -1) {
-//         std::cout << "  oost" << std::endl;
-//     }
-//     if (mZuid != -1) {
-//         std::cout << "  zuid" << std::endl;
-//     }
-//     if (mWest != -1) {
-//         std::cout << "  west" << std::endl;
-//     }
-// }
 void Locatie::listExits() const {
     std::cout << "Exits for " << mNaam << " (ID: " << mId << "):" << std::endl;
     if (mNoord != -1) {

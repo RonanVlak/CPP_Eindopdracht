@@ -1,80 +1,128 @@
 #include "CustomVector.h"
-#include <stdexcept>
 #include <iostream>
 
 template <typename T>
-CustomVector<T>::CustomVector() : mSize(0), mCapacity(1) {
-    mData = new T[mCapacity];  // Allocate memory for T, not CustomUniquePtr<T>
+CustomVector<T>::CustomVector() : data(nullptr), vectorSize(0), capacity(0) {}
+
+template <typename T>
+CustomVector<T>::CustomVector(const CustomVector& other)
+    : data(new T[other.capacity]), vectorSize(other.vectorSize), capacity(other.capacity) {
+    for (std::size_t i = 0; i < vectorSize; ++i) {
+        data[i] = other.data[i];
+    }
+}
+
+template <typename T>
+CustomVector<T>& CustomVector<T>::operator=(const CustomVector& other) {
+    if (this != &other) {
+        delete[] data;
+        data = new T[other.capacity];
+        vectorSize = other.vectorSize;
+        capacity = other.capacity;
+        for (std::size_t i = 0; i < vectorSize; ++i) {
+            data[i] = other.data[i];
+        }
+    }
+    return *this;
 }
 
 template <typename T>
 CustomVector<T>::~CustomVector() {
-    delete[] mData;
+    delete[] data;
 }
 
 template <typename T>
-void CustomVector<T>::push_back(T element) {  // Accept T directly
-    if (mSize == mCapacity) {
-        resize(mCapacity * 2);
+void CustomVector<T>::push_back(const T& value) {
+    if (vectorSize == capacity) {
+        resize(capacity == 0 ? 1 : capacity * 2);
     }
-    mData[mSize++] = std::move(element);
+    data[vectorSize++] = value;
 }
 
 template <typename T>
-void CustomVector<T>::erase(int index) {
-    if (index < 0 || index >= mSize) {
-        throw std::out_of_range("Index out of range");
+void CustomVector<T>::pop_back() {
+    if (vectorSize > 0) {
+        --vectorSize;
+    } else {
+        throw std::out_of_range("Vector is empty");
     }
-    for (int i = index; i < mSize - 1; ++i) {
-        mData[i] = std::move(mData[i + 1]);
+}
+
+template <typename T>
+void CustomVector<T>::erase(std::size_t index) {
+    if (index >= vectorSize) {
+        throw std::out_of_range("Index out of bounds");
     }
-    --mSize;
-}
-
-template <typename T>
-T& CustomVector<T>::operator[](int index) const {  // Return T& instead of T*
-    if (index < 0 || index >= mSize) {
-        std::cerr << "Index out of range: " << index << " (size: " << mSize << ")" << std::endl;
-        throw std::out_of_range("Index out of range");
+    // Shift elements to the left to fill the gap
+    for (std::size_t i = index; i < vectorSize - 1; ++i) {
+        data[i] = data[i + 1];
     }
-    return mData[index];
+    --vectorSize; // Decrease size after removing element
 }
 
 template <typename T>
-int CustomVector<T>::size() const {
-    return mSize;
-}
-
-template <typename T>
-bool CustomVector<T>::empty() const {  // Implement empty method
-    return mSize == 0;
-}
-
-template <typename T>
-void CustomVector<T>::resize(int newCapacity) {
-    T* newData = new T[newCapacity];  // Allocate as T, not CustomUniquePtr<T>
-    for (int i = 0; i < mSize; ++i) {
-        newData[i] = std::move(mData[i]);
+T& CustomVector<T>::operator[](std::size_t index) {
+    if (index >= vectorSize) {
+        throw std::out_of_range("Index out of bounds");
     }
-    delete[] mData;
-    mData = newData;
-    mCapacity = newCapacity;
+    return data[index];
 }
 
 template <typename T>
-T* CustomVector<T>::begin() {  // Implement begin method
-    return mData;
+const T& CustomVector<T>::operator[](std::size_t index) const {
+    if (index >= vectorSize) {
+        throw std::out_of_range("Index out of bounds");
+    }
+    return data[index];
 }
 
 template <typename T>
-T* CustomVector<T>::end() {  // Implement end method
-    return mData + mSize;
+std::size_t CustomVector<T>::size() const {
+    return vectorSize;
+}
+
+template <typename T>
+std::size_t CustomVector<T>::getCapacity() const {
+    return capacity;
+}
+
+template <typename T>
+bool CustomVector<T>::isEmpty() const {
+    return vectorSize == 0;
 }
 
 template <typename T>
 void CustomVector<T>::clear() {
-    for (int i = 0; i < mSize; ++i) {
-        mData[i].~T();  // Explicitly call the destructor for each element
+    vectorSize = 0;
+}
+
+template <typename T>
+void CustomVector<T>::resize(std::size_t newCapacity) {
+    T* newData = new T[newCapacity];
+    for (std::size_t i = 0; i < vectorSize; ++i) {
+        newData[i] = data[i];
     }
-    mSize = 0;
+    delete[] data;
+    data = newData;
+    capacity = newCapacity;
+}
+
+template <typename T>
+T* CustomVector<T>::begin() {
+    return data;
+}
+
+template <typename T>
+T* CustomVector<T>::end() {
+    return data + vectorSize;
+}
+
+template <typename T>
+const T* CustomVector<T>::begin() const {
+    return data;
+}
+
+template <typename T>
+const T* CustomVector<T>::end() const {
+    return data + vectorSize;
 }
