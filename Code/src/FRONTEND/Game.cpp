@@ -191,10 +191,11 @@ void Game::initSpeler(const std::string& naam, const std::string& dbPath) {
 
     // Load all spelobjecten from the database
     CustomVector<Spelobject*> spelobjecten = dbLoader.laadSpelobjecten(dbPath.c_str(), objectCount);
-    const char* wapenNaam = "dolk"; 
+    std::string wapenNaam = "dolk"; 
+    
     // Find the item named "Dolk"
     for (int i = 0; i < spelobjecten.size(); ++i) {
-        if (strcmp(spelobjecten[i]->getNaam(), wapenNaam) == 0) {
+        if (strcmp(spelobjecten[i]->getNaam(), wapenNaam.c_str()) == 0) {
             // Convert Spelobject to WapenObject using dynamic casting
             WapenObject* wapenPtr = dynamic_cast<WapenObject*>(spelobjecten[i]);
             if (wapenPtr) {

@@ -292,7 +292,7 @@ void SpelerActieHandler::sla(const std::string& aVijandnaam) {
                     std::cout << vijand->getNaam() << " is verslagen!" << std::endl;
                 }
             } else {
-                std::cout << "Je hebt geen wapen om aan te vallen." << std::endl;
+                //std::cout << "Je hebt geen wapen om aan te vallen." << std::endl;
             }
         } else {
             std::cout << "Vijand " << aVijandnaam << " is niet gevonden in je huidige locatie." << std::endl;
@@ -304,7 +304,7 @@ void SpelerActieHandler::sla(const std::string& aVijandnaam) {
 
 void SpelerActieHandler::draagWapenrusting(const std::string& aWapenrustingnaam) {
     for (int i = 0; i < mSpeler.getWapenrustingInventaris().size(); ++i) {
-        if (mSpeler.getWapenrustingInventaris()[i]->getNaam() == aWapenrustingnaam) {
+        if (strcmp(mSpeler.getWapenrustingInventaris()[i]->getNaam(), aWapenrustingnaam.c_str()) == 0) {
             mSpeler.draagWapenrusting(std::move(mSpeler.getWapenrustingInventaris()[i]));
             mSpeler.getWapenrustingInventaris().erase(mSpeler.getWapenrustingInventaris().begin() + i);
             std::cout << "Je draagt nu " << aWapenrustingnaam << "." << std::endl;
@@ -316,7 +316,7 @@ void SpelerActieHandler::draagWapenrusting(const std::string& aWapenrustingnaam)
 
 void SpelerActieHandler::draagWapen(const std::string& aWapennaam) {
     for (int i = 0; i < mSpeler.getWapenInventaris().size(); ++i) {
-        if (mSpeler.getWapenInventaris()[i]->getNaam() == aWapennaam) {
+        if (strcmp(mSpeler.getWapenInventaris()[i]->getNaam(), aWapennaam.c_str()) == 0) {
             mSpeler.draagWapen(std::move(mSpeler.getWapenInventaris()[i]));
             mSpeler.getWapenInventaris().erase(mSpeler.getWapenInventaris().begin() + i);
             std::cout << "Je draagt nu " << aWapennaam << "." << std::endl;

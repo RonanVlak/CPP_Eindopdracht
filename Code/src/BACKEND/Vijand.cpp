@@ -45,14 +45,19 @@ void Vijand::verplaats(Locatie* locatie) {
 
 void Vijand::ontvangSchade(int schade) {
     mLevenspunten -= schade;
-    if (mLevenspunten < 0) {
+    if (mLevenspunten <= 0) {
         mLevenspunten = 0;
     }
 
     if (isVerslagen() && strstr(mNaam, "[Verslagen]") == nullptr) {
-        char* newNaam = new char[strlen(mNaam) + 12]; // 12 for "[Verslagen]" and null terminator
+        size_t naamLength = strlen(mNaam);
+        const char* verslagenSuffix = " [Verslagen]";
+        size_t suffixLength = strlen(verslagenSuffix);
+
+        char* newNaam = new char[naamLength + suffixLength + 1];
         strcpy(newNaam, mNaam);
-        strcat(newNaam, " [Verslagen]");
+        strcat(newNaam, verslagenSuffix);
+
         delete[] mNaam;
         mNaam = newNaam;
     }
