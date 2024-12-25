@@ -78,15 +78,12 @@ void Speler::voegGoudstukkenToe(int aantal) {
 }
 
 void Speler::voegObjectToe(std::unique_ptr<Spelobject> obj) {
-    if (auto consumeerbaar = dynamic_cast<ConsumeerbaarObject*>(obj.get())) {
+    if (auto consumeerbaar = dynamic_cast<ConsumeerbaarObject*>(obj.release())) {
         mConsumeerbareObjecten.push_back(std::unique_ptr<ConsumeerbaarObject>(consumeerbaar));
-        obj.release();
-    } else if (auto wapen = dynamic_cast<WapenObject*>(obj.get())) {
+    } else if (auto wapen = dynamic_cast<WapenObject*>(obj.release())) {
         mWapenInventaris.push_back(std::unique_ptr<WapenObject>(wapen));
-        obj.release();
-    } else if (auto wapenrusting = dynamic_cast<WapenrustingObject*>(obj.get())) {
+    } else if (auto wapenrusting = dynamic_cast<WapenrustingObject*>(obj.release())) {
         mWapenrustingInventaris.push_back(std::unique_ptr<WapenrustingObject>(wapenrusting));
-        obj.release();
     }
 }
 

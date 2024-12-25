@@ -82,23 +82,28 @@ void Locatie::moveFrom(Locatie&& other) noexcept {
 }
 
 void Locatie::clear() {
-    delete[] mNaam;
-    delete[] mBeschrijving;
-    delete[] mGedetailleerdeBeschrijving;
+    // delete[] mNaam;
+    // delete[] mBeschrijving;
+    // delete[] mGedetailleerdeBeschrijving;
 
-    for (std::size_t i = 0; i < mRichtingen.size(); ++i) {
-        delete[] mRichtingen[i];
-    }
+    // for (std::size_t i = 0; i < mRichtingen.size(); ++i) {
+    //     delete[] mRichtingen[i];
+    // }
+    // mRichtingen.clear();
 
-    for (std::size_t i = 0; i < mVerborgenObjecten.size(); ++i) {
-        delete mVerborgenObjecten[i];
-    }
-    for (std::size_t i = 0; i < mZichtbareObjecten.size(); ++i) {
-        delete mZichtbareObjecten[i];
-    }
-    for (std::size_t i = 0; i < mVijanden.size(); ++i) {
-        delete mVijanden[i];
-    }
+    // for (std::size_t i = 0; i < mVerborgenObjecten.size(); ++i) {
+    //     delete mVerborgenObjecten[i];
+    // }
+    // mVerborgenObjecten.clear();
+    // for (std::size_t i = 0; i < mZichtbareObjecten.size(); ++i) {
+    //     delete mZichtbareObjecten[i];
+    // }
+    // mZichtbareObjecten.clear();
+
+    // for (std::size_t i = 0; i < mVijanden.size(); ++i) {
+    //     delete mVijanden[i];
+    // }
+    // mVijanden.clear();
 }
 
 void Locatie::voegVijandToe(Vijand* aVijand) {
@@ -128,7 +133,6 @@ void Locatie::voegUitgangToe(const char* richting, int locatieId) {
 void Locatie::verwijderVijand(Vijand* vijand) {
     for (std::size_t i = 0; i < mVijanden.size(); ++i) {
         if (mVijanden[i] == vijand) {
-            delete mVijanden[i];
             mVijanden.erase(i);
             return;
         }
@@ -271,7 +275,6 @@ void Locatie::verplaatsVerborgenNaarZichtbaar(Spelobject* object) {
 void Locatie::verwijderZichtbaarObject(Spelobject* object) {
     for (std::size_t i = 0; i < mZichtbareObjecten.size(); ++i) {
         if (mZichtbareObjecten[i] == object) {
-            delete mZichtbareObjecten[i];
             mZichtbareObjecten.erase(i);
             return;
         }
