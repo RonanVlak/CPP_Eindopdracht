@@ -25,12 +25,17 @@ void Game::start()
 	std::string dbFileName = "kerkersendraken.db";
 	std::string dbPath = fsConverter.getResourcePath(dbFileName);
 	std::cout << "Game started!" << std::endl;
-	std::string playerName = mGebruikersInterface->vraagSpelerNaam();
-	if (playerName.empty())
+	std::string playerName;
+
+	while (playerName.empty())
 	{
-		std::cout << "Fout: Speler naam is niet ingevuld!" << std::endl;
-		return; // Of bied een nieuwe kans om de naam in te voeren
+		playerName = mGebruikersInterface->vraagSpelerNaam();
+		if (playerName.empty())
+		{
+			std::cerr << "Fout: Speler naam is niet ingevuld!" << std::endl;
+		}
 	}
+
 	initSpeler(playerName, dbPath);
 	while (mCurrentState != State::Quit)
 	{
@@ -48,7 +53,7 @@ void Game::start()
 		case State::Quit:
 			break;
 		default:
-			std::cout << "Onbekende state." << std::endl;
+			std::cerr << "Onbekende state." << std::endl;
 			break;
 		}
 	}
@@ -181,22 +186,26 @@ void Game::gameplay()
 		else
 		{
 			verwerkActie(action);
-			int totalDamage = mSpelwereld->getEnemiesDamage();
-			if (totalDamage > 0)
+			if (action == "Kijk" || action == "Wacht" || action == "Ga naar" || action == "Sla" ||
+				action == "Draag wapenrusting")
 			{
-				if (!mSpeler->getGodMode())
+				int totalDamage = mSpelwereld->getEnemiesDamage();
+				if (totalDamage > 0)
 				{
-					mSpeler->applyDamage(totalDamage);
+					if (!mSpeler->getGodMode())
+					{
+						mSpeler->applyDamage(totalDamage);
+					}
 				}
-			}
-			if (mSpeler->getLevenspunten() <= 0)
-			{
-				std::cout << "Je bent verslagen!" << std::endl;
-				mCurrentState = State::GameMenu;
-			}
-			else
-			{
-				mSpelwereld->verplaatsVijanden();
+				if (mSpeler->getLevenspunten() <= 0)
+				{
+					std::cout << "Je bent verslagen!" << std::endl;
+					mCurrentState = State::GameMenu;
+				}
+				else
+				{
+					mSpelwereld->verplaatsVijanden();
+				}
 			}
 		}
 	}
