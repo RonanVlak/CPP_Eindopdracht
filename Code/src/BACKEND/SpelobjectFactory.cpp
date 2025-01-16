@@ -12,6 +12,8 @@ Spelobject* SpelobjectFactory::CreateSpelobject(const char* aNaam, const char* a
     } else if ((strcmp(aType, "teleportatiedrank") == 0) || (strcmp(aType, "ervaringsdrank") == 0) || (strcmp(aType, "levenselixer") == 0)) {
         return new ConsumeerbaarObject(aNaam, aBeschrijving, aMinimumwaarde);
     } else {
-        return new Spelobject(aNaam, aBeschrijving);
+        throw std::invalid_argument("Ongeldig spelobject type");
     }
+
+    return nullptr;
 }

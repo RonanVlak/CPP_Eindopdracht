@@ -62,6 +62,8 @@ void XMLParser::parseLocatie(tinyxml2::XMLElement* locatieElement, Spelwereld& s
     LocatieFactory locatieFactory;
     Locatie* locatie = locatieFactory.CreateLocatie(id, naam ? naam : "", beschrijving ? beschrijving : "", gedetailleerdeBeschrijving ? gedetailleerdeBeschrijving : "", noord ? noord : "", oost ? oost : "", zuid ? zuid : "", west ? west : "", vijanden ? vijanden : "", objectenVerborgen ? objectenVerborgen : "", objectenZichtbaar ? objectenZichtbaar : "", databaseBestand);
     spelwereld.voegLocatieToe(locatie);
+    locatie = nullptr;
+    delete locatie;
 }
 
 void XMLParser::updateExits(Spelwereld& spelwereld) {

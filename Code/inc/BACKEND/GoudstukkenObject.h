@@ -6,7 +6,6 @@
 class GoudstukkenObject : public Spelobject {
 public:
     GoudstukkenObject(const char* aNaam, const char* aBeschrijving, int aAantalGoudstukken);
-    virtual ~GoudstukkenObject();
     int getAantalGoudstukken() const;
 
 private:

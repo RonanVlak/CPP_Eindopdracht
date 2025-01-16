@@ -28,7 +28,7 @@ CustomVector<T>& CustomVector<T>::operator=(const CustomVector& other) {
 
 template <typename T>
 CustomVector<T>::~CustomVector() {
-    delete[] data;
+    clear();
 }
 
 template <typename T>
@@ -53,11 +53,10 @@ void CustomVector<T>::erase(std::size_t index) {
     if (index >= vectorSize) {
         throw std::out_of_range("Index out of bounds");
     }
-    // Shift elements to the left to fill the gap
     for (std::size_t i = index; i < vectorSize - 1; ++i) {
         data[i] = data[i + 1];
     }
-    --vectorSize; // Decrease size after removing element
+    --vectorSize;
 }
 
 template <typename T>
@@ -93,7 +92,10 @@ bool CustomVector<T>::isEmpty() const {
 
 template <typename T>
 void CustomVector<T>::clear() {
+    delete[] data;
+    data = nullptr;
     vectorSize = 0;
+    capacity = 0;
 }
 
 template <typename T>

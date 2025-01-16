@@ -6,7 +6,6 @@
 class WapenObject : public Spelobject {
 public:
     WapenObject(const char* aNaam, const char* aBeschrijving, int aMinimumSchade, int aMaximumSchade);
-    virtual ~WapenObject();
 public:
     int getMinimumSchade() const;
     int getMaximumSchade() const;

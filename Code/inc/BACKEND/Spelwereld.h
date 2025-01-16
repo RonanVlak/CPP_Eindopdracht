@@ -3,6 +3,7 @@
 
 #include "Locatie.h"
 #include <random>
+#include "WapenObject.h"
 
 class Spelwereld {
 public:
@@ -23,6 +24,8 @@ public:
     Locatie* getLocatieByIndex(int index) const;
     int getLocatiesCount() const;
     int getEnemiesDamage();
+    void generateRandomKerker(const char* databaseBestand);
+    WapenObject* getStartWapen(const char* dbPath);
 private: 
     void clear();
     void copyFrom(const Spelwereld& other);

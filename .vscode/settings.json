@@ -70,6 +70,7 @@
         "variant": "cpp",
         "codecvt": "cpp",
         "cfenv": "cpp",
-        "filesystem": "cpp"
+        "filesystem": "cpp",
+        "*.tpp": "cpp"
     }
 }

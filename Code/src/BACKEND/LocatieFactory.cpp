@@ -46,6 +46,10 @@ Locatie* LocatieFactory::CreateLocatie(int id, const char* naam, const char* alg
             if (!vijandStart) break;
             ++vijandStart;
         }
+        for (auto& vijand : vijandenVector) {
+            delete vijand;
+        }
+        vijandenVector.clear();
     }
 
     // Add hidden objects
@@ -71,6 +75,10 @@ Locatie* LocatieFactory::CreateLocatie(int id, const char* naam, const char* alg
             if (!objectStart) break;
             ++objectStart;
         }
+        for (auto& object : verborgenObjectenVector) {
+            delete object;
+        }
+        verborgenObjectenVector.clear();
     }
 
     // Add visible objects
@@ -96,6 +104,10 @@ Locatie* LocatieFactory::CreateLocatie(int id, const char* naam, const char* alg
             if (!objectStart) break;
             ++objectStart;
         }
+        for (auto& object : zichtbareObjectenVector) {
+            delete object;
+        }
+        zichtbareObjectenVector.clear();
     }
 
     return locatie;

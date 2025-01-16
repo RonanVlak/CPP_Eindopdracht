@@ -130,8 +130,7 @@ void Speler::voegGoudstukkenToe(int aantal) { mGoudstukken += aantal; }
 
 void Speler::voegObjectToe(std::unique_ptr<Spelobject> obj)
 {
-	const char* objectNaam = obj->getNaam();
-	std::cout << "Probeer object toe te voegen: " << objectNaam << std::endl;
+	const std::string& objectNaam = obj->getNaam();
 
 	if (auto consumeerbaar = dynamic_cast<ConsumeerbaarObject*>(obj.get()))
 	{

@@ -6,7 +6,6 @@
 class ConsumeerbaarObject : public Spelobject {
 public:
     ConsumeerbaarObject(const char* aNaam, const char* aBeschrijving, int aEffect);
-    virtual ~ConsumeerbaarObject();
     int getEffect() const;
 
 private:

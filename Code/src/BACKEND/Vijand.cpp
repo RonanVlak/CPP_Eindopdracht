@@ -177,9 +177,12 @@ void Vijand::moveFrom(Vijand&& other) noexcept {
 
 void Vijand::clear() {
     delete[] mNaam;
+    mNaam = nullptr;
     delete[] mBeschrijving;
-    for (int i = 0; i < mSpelobjecten.size(); ++i) {
-        delete mSpelobjecten[i];
+    mBeschrijving = nullptr;
+    for (auto& obj : mSpelobjecten) {
+        delete obj;
+        obj = nullptr;
     }
     mSpelobjecten.clear();
 }
