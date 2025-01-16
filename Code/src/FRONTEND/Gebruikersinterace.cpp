@@ -40,7 +40,6 @@ void GebruikersInterface::toonHelp() {
     std::cout << "Toon acties" << std::endl;
     std::cout << "help" << std::endl;
     std::cout << "quit" << std::endl;
-    // Add code to display help information
 }
 
 void GebruikersInterface::toonEindeSpel() {

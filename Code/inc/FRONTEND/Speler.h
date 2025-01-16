@@ -13,7 +13,7 @@
 class Speler {
 public:
     Speler();
-    Speler(const std::string& naam, int levenspunten, int aanvalskans);
+    Speler(const std::string& naam, int levenspunten, int aanvalskans, bool godMode);
     ~Speler();
     Speler(const Speler& other);
     Speler& operator=(const Speler& other);
@@ -35,6 +35,7 @@ public:
     int getLevenspunten() const;
     int getAanvalskans() const;
     int getGoudstukken() const;
+    bool getGodMode() const;
     std::vector<std::unique_ptr<ConsumeerbaarObject>>& getConsumeerbareObjecten();
     std::vector<std::unique_ptr<WapenObject>>& getWapenInventaris();
     std::vector<std::unique_ptr<WapenrustingObject>>& getWapenrustingInventaris();
@@ -45,6 +46,7 @@ public:
     void setLevenspunten(int levenspunten);
     void setAanvalskans(int aanvalskans);
     void setGoudstukken(int goudstukken);
+    void setGodMode(bool godMode);
 
 private:
     void copyFrom(const Speler& other);
@@ -60,6 +62,7 @@ private:
     std::vector<std::unique_ptr<ConsumeerbaarObject>> mConsumeerbareObjecten;
     std::vector<std::unique_ptr<WapenObject>> mWapenInventaris;
     std::vector<std::unique_ptr<WapenrustingObject>> mWapenrustingInventaris;
+    bool mGodMode;
 };
 
 #endif // SPELER_H

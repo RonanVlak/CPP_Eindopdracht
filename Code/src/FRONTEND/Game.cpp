@@ -10,7 +10,7 @@ namespace fs = std::filesystem;
 
 Game::Game()
 	: mCurrentState(State::MainMenu), mSpelwereld(std::make_unique<Spelwereld>()),
-	  mSpeler(std::make_unique<Speler>("", 100, 50)), // Initialize Speler with default values
+	  mSpeler(std::make_unique<Speler>("", 100, 50, false)), // Initialize Speler with default values
 	  mGebruikersInterface(std::make_unique<GebruikersInterface>()),
 	  mSpelerActieHandler(std::make_unique<SpelerActieHandler>(mSpelwereld, mSpeler, mGebruikersInterface))
 {
@@ -184,7 +184,10 @@ void Game::gameplay()
 			int totalDamage = mSpelwereld->getEnemiesDamage();
 			if (totalDamage > 0)
 			{
-				mSpeler->applyDamage(totalDamage);
+				if (!mSpeler->getGodMode())
+				{
+					mSpeler->applyDamage(totalDamage);
+				}
 			}
 			if (mSpeler->getLevenspunten() <= 0)
 			{

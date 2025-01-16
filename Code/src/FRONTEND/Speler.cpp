@@ -6,8 +6,8 @@
 
 Speler::Speler() : mLevenspunten(0), mAanvalskans(0), mGoudstukken(0) {}
 
-Speler::Speler(const std::string& naam, int levenspunten, int aanvalskans)
-	: mNaam(naam), mLevenspunten(levenspunten), mAanvalskans(aanvalskans), mGoudstukken(0)
+Speler::Speler(const std::string& naam, int levenspunten, int aanvalskans, bool godMode)
+	: mNaam(naam), mLevenspunten(levenspunten), mAanvalskans(aanvalskans), mGoudstukken(0), mGodMode(godMode)
 {
 }
 
@@ -223,6 +223,8 @@ int Speler::getAanvalskans() const { return mAanvalskans; }
 
 int Speler::getGoudstukken() const { return mGoudstukken; }
 
+bool Speler::getGodMode() const { return mGodMode; }
+
 std::vector<std::unique_ptr<ConsumeerbaarObject>>& Speler::getConsumeerbareObjecten() { return mConsumeerbareObjecten; }
 
 std::vector<std::unique_ptr<WapenObject>>& Speler::getWapenInventaris() { return mWapenInventaris; }
@@ -243,6 +245,8 @@ void Speler::setLevenspunten(int levenspunten) { mLevenspunten = levenspunten; }
 void Speler::setAanvalskans(int aanvalskans) { mAanvalskans = aanvalskans; }
 
 void Speler::setGoudstukken(int goudstukken) { mGoudstukken = goudstukken; }
+
+void Speler::setGodMode(bool godMode) { mGodMode = godMode; }
 
 void Speler::copyFrom(const Speler& other)
 {
