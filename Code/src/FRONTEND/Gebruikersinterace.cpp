@@ -9,8 +9,10 @@ void GebruikersInterface::toonMenu() {
 }
 
 void GebruikersInterface::toonLocatie(Locatie* locatie) {
-    std::cout << locatie->getNaam() << std::endl;
-    std::cout << locatie->getAlgemeneOmschrijving() << std::endl;
+    if (locatie != nullptr) {
+        std::cout << locatie->getNaam() << std::endl;
+        std::cout << locatie->getAlgemeneOmschrijving() << std::endl;
+    }
 }
 
 void GebruikersInterface::toonSpeler(const Speler& speler) {

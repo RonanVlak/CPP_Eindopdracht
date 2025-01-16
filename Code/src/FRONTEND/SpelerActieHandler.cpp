@@ -442,11 +442,53 @@ void SpelerActieHandler::consumeer(const std::string& aObjectnaam)
 {
 	for (auto it = mSpeler.getConsumeerbareObjecten().begin(); it != mSpeler.getConsumeerbareObjecten().end(); ++it)
 	{
-		if ((*it)->getNaam() == aObjectnaam)
+		if (std::string((*it)->getNaam()).find(aObjectnaam) != std::string::npos)
 		{
+			if (aObjectnaam.find("levenselixer") != std::string::npos)
+			{
+				int levenspunten = 0;
+				int currentLevenspunten = mSpeler.getLevenspunten();
+				if (it->get()->getEffect() != 0)
+				{
+					levenspunten = it->get()->getEffect();
+				}
+				else
+				{
+					std::random_device rd;
+					std::mt19937 gen(rd());
+					std::uniform_int_distribution<> dis(5, 15);
+					levenspunten = dis(gen);
+				}
+				currentLevenspunten = mSpeler.getLevenspunten();
+				levenspunten = std::min(currentLevenspunten + levenspunten, 100);
+				mSpeler.setLevenspunten(levenspunten);
+				std::cout << "Je hebt " << aObjectnaam << " geconsumeerd." << std::endl;
+				std::cout << "Je hebt " << levenspunten << " levenspunten erbij gekregen." << std::endl;
+			}
+			else if (aObjectnaam.find("ervaringsdrank") != std::string::npos)
+			{
+				int huidigeAanvalskans = mSpeler.getAanvalskans();
+				int nieuweAanvalskans = std::min(huidigeAanvalskans + 10, 90);
+				mSpeler.setAanvalskans(nieuweAanvalskans);
+				std::cout << "Je hebt " << aObjectnaam << " geconsumeerd." << std::endl;
+				std::cout << "Je aanvalskans is verhoogd naar " << nieuweAanvalskans << "%." << std::endl;
+			}
+			else if (aObjectnaam.find("teleportatiedrank") != std::string::npos)
+			{
+
+				std::random_device rd;
+				std::mt19937 gen(rd());
+				std::uniform_int_distribution<> dis(0, mSpelwereld.getLocatiesCount() - 1);
+				int nieuweLocatieIndex = dis(gen);
+				Locatie* nieuweLocatie = mSpelwereld.getLocatieByIndex(nieuweLocatieIndex);
+				mSpelwereld.setCurrentLocatie(nieuweLocatie);
+				std::cout << "Je hebt " << aObjectnaam << " geconsumeerd." << std::endl;
+				std::cout << "Je bent geteleporteerd naar een nieuwe locatie." << std::endl;
+				mGebruikersInterface.toonLocatie(mSpelwereld.getCurrentLocatie());
+			}
+
 			mSpeler.consumeerObject(it->get());
 			mSpeler.getConsumeerbareObjecten().erase(it);
-			std::cout << "Je hebt " << aObjectnaam << " geconsumeerd." << std::endl;
 			return;
 		}
 	}

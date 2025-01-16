@@ -71,6 +71,12 @@
         "codecvt": "cpp",
         "cfenv": "cpp",
         "filesystem": "cpp",
-        "*.tpp": "cpp"
+        "*.tpp": "cpp",
+        "bitset": "cpp",
+        "complex": "cpp",
+        "future": "cpp",
+        "stdfloat": "cpp",
+        "text_encoding": "cpp",
+        "valarray": "cpp"
     }
 }
