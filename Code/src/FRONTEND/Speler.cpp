@@ -136,25 +136,21 @@ void Speler::voegObjectToe(std::unique_ptr<Spelobject> obj)
 	{
 		mConsumeerbareObjecten.push_back(std::unique_ptr<ConsumeerbaarObject>(consumeerbaar));
 		obj.release();
-		std::cout << "Consumeerbaar object toegevoegd aan inventaris: " << consumeerbaar->getNaam() << std::endl;
 	}
 	else if (auto wapen = dynamic_cast<WapenObject*>(obj.get()))
 	{
 		mWapenInventaris.push_back(std::unique_ptr<WapenObject>(wapen));
 		obj.release();
-		std::cout << "Wapen toegevoegd aan inventaris: " << wapen->getNaam() << std::endl;
 	}
 	else if (auto wapenrusting = dynamic_cast<WapenrustingObject*>(obj.get()))
 	{
 		mWapenrustingInventaris.push_back(std::unique_ptr<WapenrustingObject>(wapenrusting));
 		obj.release();
-		std::cout << "Wapenrusting toegevoegd aan inventaris: " << wapenrusting->getNaam() << std::endl;
 	}
 	else if (auto goudstukken = dynamic_cast<GoudstukkenObject*>(obj.get()))
 	{
 		voegGoudstukkenToe(goudstukken->getAantalGoudstukken());
 		obj.release();
-		std::cout << "Goudstukken object toegevoegd aan inventaris: " << goudstukken->getNaam() << std::endl;
 	}
 	else
 	{
@@ -162,7 +158,7 @@ void Speler::voegObjectToe(std::unique_ptr<Spelobject> obj)
 	}
 }
 
-bool Speler::sla(Vijand* vijand)
+void Speler::sla(Vijand* vijand)
 {
 	if (vijand)
 	{
@@ -185,17 +181,17 @@ bool Speler::sla(Vijand* vijand)
 				schade = schadeDis(gen);
 			}
 			vijand->ontvangSchade(schade);
+			std::cout << "Je hebt " << vijand->getNaam() << " aangevallen en " << schade << " schade toegebracht."
+					  << std::endl;
 			if (vijand->isVerslagen())
 			{
-				return true;
+				return;
 			}
 			else
 			{
-				std::cout << "Je hebt " << vijand->getNaam() << " aangevallen en " << schade << " schade toegebracht."
-						  << std::endl;
 				std::cout << vijand->getNaam() << " heeft nog " << vijand->getLevenspunten() << " levenspunten over."
 						  << std::endl;
-				return false;
+				return;
 			}
 		}
 		else
@@ -203,7 +199,6 @@ bool Speler::sla(Vijand* vijand)
 			std::cout << "Je hebt " << vijand->getNaam() << " aangevallen, maar je miste." << std::endl;
 		}
 	}
-	return false;
 }
 
 void Speler::applyDamage(int damage)

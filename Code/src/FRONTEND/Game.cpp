@@ -14,6 +14,10 @@ Game::Game()
 	  mGebruikersInterface(std::make_unique<GebruikersInterface>()),
 	  mSpelerActieHandler(std::make_unique<SpelerActieHandler>(mSpelwereld, mSpeler, mGebruikersInterface))
 {
+	mXMLDungeon = false;
+	mRandomDungeon = false;
+	mPlayerName = "";
+	mDbPath = "";
 }
 
 Game::~Game() { mCurrentState = State::Quit; }
@@ -24,19 +28,21 @@ void Game::start()
 	std::string resourcesDirectory = fsConverter.getResourcePath("");
 	std::string dbFileName = "kerkersendraken.db";
 	std::string dbPath = fsConverter.getResourcePath(dbFileName);
-	std::cout << "Game started!" << std::endl;
-	std::string playerName;
 
-	while (playerName.empty())
+	std::system("clear");
+
+	std::cout << "Game started!" << std::endl;
+
+	while (mPlayerName.empty())
 	{
-		playerName = mGebruikersInterface->vraagSpelerNaam();
-		if (playerName.empty())
+		mPlayerName = mGebruikersInterface->vraagSpelerNaam();
+		if (mPlayerName.empty())
 		{
 			std::cerr << "Fout: Speler naam is niet ingevuld!" << std::endl;
 		}
 	}
 
-	initSpeler(playerName, dbPath);
+	initSpeler(mPlayerName, dbPath);
 	while (mCurrentState != State::Quit)
 	{
 		switch (mCurrentState)
@@ -127,6 +133,8 @@ void Game::gameMenu()
 		{
 		case 1:
 			genereerRandomKerker(dbPath);	 // Generate random dungeon
+			mRandomDungeon = true;			 // Set random dungeon flag to true
+			mXMLDungeon = false;			 // Set XML dungeon flag to false
 			mCurrentState = State::Gameplay; // Set the state to gameplay
 			return;							 // Exit the menu function to proceed to gameplay
 		case 2:
@@ -146,6 +154,8 @@ void Game::gameMenu()
 			else
 			{
 				laadKerkerVanXML(filePath, dbPath);
+				mXMLDungeon = true;					 // Set XML dungeon flag to true
+				mRandomDungeon = false;					 // Set random dungeon flag to false
 				mCurrentState = State::Gameplay; // Set the state to gameplay
 				return;							 // Exit the menu function to proceed to gameplay
 			}
@@ -164,6 +174,7 @@ void Game::gameMenu()
 void Game::gameplay()
 {
 	mSpelwereld->setCurrentLocatie(mSpelwereld->getLocatieByIndex(0));
+	mGebruikersInterface->toonLocatie(mSpelwereld->getCurrentLocatie());
 	while (mCurrentState == State::Gameplay)
 	{
 		std::string action = mGebruikersInterface->vraagActie();
@@ -177,7 +188,7 @@ void Game::gameplay()
 		}
 		else if (action == "Toon locatie")
 		{
-			mGebruikersInterface->toonLocatie();
+			mGebruikersInterface->toonLocatie(mSpelwereld->getCurrentLocatie());
 		}
 		else if (action == "quit")
 		{
@@ -186,8 +197,7 @@ void Game::gameplay()
 		else
 		{
 			verwerkActie(action);
-			if (action == "Kijk" || action == "Wacht" || action == "Ga naar" || action == "Sla" ||
-				action == "Draag wapenrusting")
+			if (action == "Kijk" || action == "Wacht" || action == "Sla" || action == "Draag wapenrusting")
 			{
 				int totalDamage = mSpelwereld->getEnemiesDamage();
 				if (totalDamage > 0)
@@ -212,6 +222,51 @@ void Game::gameplay()
 	mGebruikersInterface->toonEindeSpel();
 }
 
+void Game::deathMenu()
+{
+	while (true)
+	{
+		std::cout << "Wat wil je doen?" << std::endl;
+		std::cout << "1. Opnieuw spelen" << std::endl;
+		std::cout << "2. Terug naar Main Menu" << std::endl;
+
+		initSpeler(mPlayerName, mDbPath);
+		int choice;
+		std::cin >> choice;
+
+		// Check for valid input
+		if (std::cin.fail())
+		{
+			std::cin.clear();													// Clear the error state
+			std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // Ignore bad input
+			std::cout << "Onbekende keuze, probeer het opnieuw." << std::endl;
+			continue; // Restart the loop to show the menu again
+		}
+
+		switch (choice)
+		{
+		case 1:
+			if (mRandomDungeon)
+			{
+				genereerRandomKerker(); // Generate random dungeon
+			}
+			else
+			{
+				laadKerkerVanXML("kerker.xml", "kerkersendraken.db");
+			}
+			mCurrentState = State::Gameplay; // Set the state to gameplay
+			return;							 // Exit the menu function to restart the game
+		case 2:
+			mCurrentState = State::MainMenu; // Set the state to main menu
+			return;							 // Exit the menu function to return to the main menu
+		default:
+			std::cout << "Onbekende keuze, probeer het opnieuw." << std::endl;
+			break; // Continue to the next iteration
+		}
+	}
+}
+
+
 void Game::laadKerkerVanXML(const std::string& xmlBestand, const std::string& databaseBestand)
 {
 	XMLParser parser;
@@ -222,6 +277,7 @@ void Game::genereerRandomKerker() { std::cout << "Random dungeon generated!" << 
 
 void Game::initSpeler(const std::string& naam, const std::string& dbPath)
 {
+	mSpeler->clear();
 	mSpeler->setNaam(naam);
 	WapenObject* wapenPtr = mSpelwereld->getStartWapen(dbPath.c_str());
 	if (wapenPtr)

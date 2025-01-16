@@ -21,6 +21,7 @@ public:
     void voegSpelobjectToe(Spelobject* spelobject);
     void removeSpelobject(Spelobject* spelobject);
     Spelobject* getSpelobject(int index) const;
+    CustomVector<Spelobject*> getSpelobjecten() const;
     int getAantalSpelobjecten() const;
     int getLevenspunten() const;
     int getMinimumObjecten() const;

@@ -8,9 +8,9 @@ void GebruikersInterface::toonMenu() {
     std::cout << "Enter your choice: ";
 }
 
-void GebruikersInterface::toonLocatie() {
-    std::cout << "Displaying current location..." << std::endl;
-    // Add code to display the current location
+void GebruikersInterface::toonLocatie(Locatie* locatie) {
+    std::cout << locatie->getNaam() << std::endl;
+    std::cout << locatie->getAlgemeneOmschrijving() << std::endl;
 }
 
 void GebruikersInterface::toonSpeler(const Speler& speler) {

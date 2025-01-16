@@ -2,6 +2,7 @@
 #include "DatabaseLoader.h"
 #include "WapenObject.h"
 #include <algorithm>
+#include <cstdlib>
 #include <cstring>
 #include <iostream>
 #include <random>
@@ -101,6 +102,8 @@ int Spelwereld::getEnemiesDamage()
 void Spelwereld::verplaatsVijanden()
 {
 	Locatie* currentLocation = getCurrentLocatie();
+	bool enemiesInCurrentLocation = false;
+
 	if (currentLocation)
 	{
 		for (int i = 0; i < currentLocation->getVijandenCount(); ++i)
@@ -108,23 +111,43 @@ void Spelwereld::verplaatsVijanden()
 			Vijand* vijand = currentLocation->getVijand(i);
 			if (vijand && !vijand->isVerslagen())
 			{
-				std::random_device rd;
-				std::mt19937 gen(rd());
-				std::uniform_int_distribution<> dis(1, 100);
-				int moveChance = dis(gen);
+				enemiesInCurrentLocation = true;
+			}
+		}
+	}
 
-				if (moveChance <= 50)
-				{ // 50% chance to move
-					// Get a random adjacent location
-					CustomVector<Locatie*> adjacentLocations = getAdjacentLocations(currentLocation);
-					if (adjacentLocations.size() > 0)
+	if (!enemiesInCurrentLocation)
+	{
+		// Move enemies in all other rooms
+		for (int i = 0; i < mLocaties.size(); ++i)
+		{
+			Locatie* locatie = mLocaties[i];
+			if (locatie != currentLocation)
+			{
+				for (int j = 0; j < locatie->getVijandenCount(); ++j)
+				{
+					Vijand* vijand = locatie->getVijand(j);
+					if (vijand && !vijand->isVerslagen())
 					{
-						std::uniform_int_distribution<> locDis(0, adjacentLocations.size() - 1);
-						Locatie* newLocation = adjacentLocations[locDis(gen)];
-						newLocation->voegVijandToe(vijand);
-						std::cout << vijand->getNaam() << " is verplaatst naar " << newLocation->getNaam() << "."
-								  << std::endl;
-						currentLocation->verwijderVijand(vijand);
+						std::random_device rd;
+						std::mt19937 gen(rd());
+						std::uniform_int_distribution<> dis(1, 100);
+						int moveChance = dis(gen);
+
+						if (moveChance <= 50)
+						{ // 50% chance to move
+							// Get a random adjacent location
+							CustomVector<Locatie*> adjacentLocations = getAdjacentLocations(locatie);
+							if (adjacentLocations.size() > 0)
+							{
+								std::uniform_int_distribution<> locDis(0, adjacentLocations.size() - 1);
+								Locatie* newLocation = adjacentLocations[locDis(gen)];
+								newLocation->voegVijandToe(vijand);
+								std::cout << vijand->getNaam() << " is verplaatst naar " << newLocation->getNaam()
+										  << "." << std::endl;
+								locatie->verwijderVijand(vijand);
+							}
+						}
 					}
 				}
 			}
@@ -187,14 +210,66 @@ void Spelwereld::generateRandomKerker(const char* databaseBestand)
 		if (!vijanden.isEmpty())
 		{
 			std::uniform_int_distribution<> vijandDis(0, vijanden.size() - 1);
-			int numEnemies = vijandDis(gen) % 2 + 1; // Random number of enemies between 1 and 3
+			int numEnemies = vijandDis(gen) % 3; // Random number of enemies between 0 and 2
 			for (int j = 0; j < numEnemies; ++j)
 			{
 				int randomIndex = vijandDis(gen);
-				if (randomIndex >= 0 && randomIndex < vijanden.size())
+				if (randomIndex >= 0 && randomIndex < vijanden.size() && vijanden[randomIndex] != nullptr)
 				{
-					locatie->voegVijandToe(vijanden[randomIndex]);
-					vijanden[randomIndex] = nullptr;
+					Vijand* vijand = vijanden[randomIndex];
+
+					// Ensure unique name for the vijand
+					char vijandNaam[256];
+					strcpy(vijandNaam, vijand->getNaam());
+					int vijandId = 1;
+					for (int k = 0; k < vijanden.size(); ++k)
+					{
+						if (vijanden[k] != nullptr && strcmp(vijanden[k]->getNaam(), vijandNaam) == 0)
+						{
+							char newVijandNaam[256];
+							snprintf(newVijandNaam, sizeof(newVijandNaam) - 1, "%.245s%d", vijandNaam, vijandId++);
+							newVijandNaam[sizeof(newVijandNaam) - 1] = '\0';
+							vijand->setNaam(newVijandNaam);
+						}
+					}
+
+					// Assign random spelobjecten to the vijand
+					std::uniform_int_distribution<> objectDis(vijand->getMinimumObjecten(),
+															  vijand->getMaximumObjecten());
+					int numObjects = objectDis(gen);
+					for (int k = 0; k < numObjects; ++k)
+					{
+						if (!objecten.isEmpty())
+						{
+							std::uniform_int_distribution<> objDis(0, objecten.size() - 1);
+							int objIndex = objDis(gen);
+							if (objIndex >= 0 && objIndex < objecten.size() && objecten[objIndex] != nullptr)
+							{
+								Spelobject* object = objecten[objIndex];
+
+								// Ensure unique name for the object
+								char objectNaam[256];
+								strcpy(objectNaam, object->getNaam());
+								int objectId = 1;
+								for (int l = 0; l < objecten.size(); ++l)
+								{
+									if (objecten[l] != nullptr && strcmp(objecten[l]->getNaam(), objectNaam) == 0)
+									{
+										char newObjectNaam[256];
+										snprintf(newObjectNaam, sizeof(newObjectNaam) - 1, "%.245s%d", objectNaam,
+												 objectId++);
+										newObjectNaam[sizeof(newObjectNaam) - 1] = '\0';
+										object->setNaam(newObjectNaam);
+									}
+								}
+
+								vijand->voegSpelobjectToe(object);
+								objecten[objIndex] = nullptr; // Mark as moved
+							}
+						}
+					}
+					locatie->voegVijandToe(vijand);
+					vijanden[randomIndex] = nullptr; // Mark as moved
 				}
 			}
 		}
@@ -207,16 +282,66 @@ void Spelwereld::generateRandomKerker(const char* databaseBestand)
 			for (int j = 0; j < numObjects; ++j)
 			{
 				int randomIndex = objectDis(gen);
-				if (randomIndex >= 0 && randomIndex < objecten.size())
+				if (randomIndex >= 0 && randomIndex < objecten.size() && objecten[randomIndex] != nullptr)
 				{
-					locatie->voegZichtbaarObjectToe(objecten[randomIndex]);
-					objecten[randomIndex] = nullptr;
+					Spelobject* object = objecten[randomIndex];
+
+					// Ensure unique name for the object
+					char objectNaam[256];
+					strcpy(objectNaam, object->getNaam());
+					int objectId = 1;
+					for (int k = 0; k < objecten.size(); ++k)
+					{
+						if (objecten[k] != nullptr && strcmp(objecten[k]->getNaam(), objectNaam) == 0)
+						{
+							char newObjectNaam[256];
+							snprintf(newObjectNaam, sizeof(newObjectNaam) - 1, "%.245s%d", objectNaam, objectId++);
+							newObjectNaam[sizeof(newObjectNaam) - 1] = '\0';
+							object->setNaam(newObjectNaam);
+						}
+					}
+
+					locatie->voegZichtbaarObjectToe(object);
+					objecten[randomIndex] = nullptr; // Mark as moved
+				}
+			}
+		}
+
+		// Add random hidden objects to the location
+		if (!objecten.isEmpty())
+		{
+			std::uniform_int_distribution<> hiddenObjectDis(0, objecten.size() - 1);
+			int numHiddenObjects = hiddenObjectDis(gen) % 3; // Random number of hidden objects between 0 and 2
+			for (int j = 0; j < numHiddenObjects; ++j)
+			{
+				int randomIndex = hiddenObjectDis(gen);
+				if (randomIndex >= 0 && randomIndex < objecten.size() && objecten[randomIndex] != nullptr)
+				{
+					Spelobject* object = objecten[randomIndex];
+
+					// Ensure unique name for the hidden object
+					char objectNaam[256];
+					strcpy(objectNaam, object->getNaam());
+					int objectId = 1;
+					for (int k = 0; k < objecten.size(); ++k)
+					{
+						if (objecten[k] != nullptr && strcmp(objecten[k]->getNaam(), objectNaam) == 0)
+						{
+							char newObjectNaam[256];
+							snprintf(newObjectNaam, sizeof(newObjectNaam) - 1, "%.245s%d", objectNaam, objectId++);
+							newObjectNaam[sizeof(newObjectNaam) - 1] = '\0';
+							object->setNaam(newObjectNaam);
+						}
+					}
+
+					locatie->voegVerborgenObjectToe(object);
+					objecten[randomIndex] = nullptr; // Mark as moved
 				}
 			}
 		}
 
 		voegLocatieToe(locatie);
-		locaties[i] = nullptr;
+		locaties[i] = nullptr; // Mark as moved
 	}
 
 	// Clean up remaining locaties
@@ -224,21 +349,18 @@ void Spelwereld::generateRandomKerker(const char* databaseBestand)
 	{
 		delete locatie;
 	}
-	locaties.clear();
 
 	// Clean up remaining vijanden
 	for (auto& vijand : vijanden)
 	{
 		delete vijand;
 	}
-	vijanden.clear();
 
 	// Clean up remaining objecten
 	for (auto& object : objecten)
 	{
 		delete object;
 	}
-	objecten.clear();
 
 	// Create the adjacency matrix
 	int locatiesCount = getLocatiesCount();
@@ -252,36 +374,69 @@ void Spelwereld::generateRandomKerker(const char* databaseBestand)
 		}
 	}
 
-	// Set random exits for the locations
+	// Ensure each room has between 1 and 4 exits and is accessible
 	for (int i = 0; i < locatiesCount; ++i)
 	{
-		std::uniform_int_distribution<> exitDis(0, locatiesCount - 1);
-		int noord = exitDis(gen);
-		int oost = exitDis(gen);
-		int zuid = exitDis(gen);
-		int west = exitDis(gen);
+		std::uniform_int_distribution<> exitDis(1, 4);
+		int numExits = exitDis(gen);
 
-		if (noord != i && noord >= 0 && noord < locatiesCount)
+		for (int e = 0; e < numExits; ++e)
 		{
-			adjacencyMatrix[i][noord] = 1;
-			adjacencyMatrix[noord][i] = 1;
-		}
-		if (oost != i && oost >= 0 && oost < locatiesCount)
-		{
-			adjacencyMatrix[i][oost] = 1;
-			adjacencyMatrix[oost][i] = 1;
-		}
-		if (zuid != i && zuid >= 0 && zuid < locatiesCount)
-		{
-			adjacencyMatrix[i][zuid] = 1;
-			adjacencyMatrix[zuid][i] = 1;
-		}
-		if (west != i && west >= 0 && west < locatiesCount)
-		{
-			adjacencyMatrix[i][west] = 1;
-			adjacencyMatrix[west][i] = 1;
+			std::uniform_int_distribution<> locDis(0, locatiesCount - 1);
+			int target = locDis(gen);
+
+			if (target != i && adjacencyMatrix[i][target] == 0)
+			{
+				adjacencyMatrix[i][target] = 1;
+				adjacencyMatrix[target][i] = 1;
+			}
 		}
 	}
+
+	// Ensure all rooms are accessible
+	bool* visited = new bool[locatiesCount];
+	for (int i = 0; i < locatiesCount; ++i)
+	{
+		visited[i] = false;
+	}
+	int* toVisit = new int[locatiesCount];
+	int toVisitCount = 0;
+
+	toVisit[toVisitCount++] = 0;
+	visited[0] = true;
+
+	while (toVisitCount > 0)
+	{
+		int current = toVisit[--toVisitCount];
+
+		for (int j = 0; j < locatiesCount; ++j)
+		{
+			if (adjacencyMatrix[current][j] == 1 && !visited[j])
+			{
+				visited[j] = true;
+				toVisit[toVisitCount++] = j;
+			}
+		}
+	}
+
+	for (int i = 0; i < locatiesCount; ++i)
+	{
+		if (!visited[i])
+		{
+			// Connect this room to a random visited room
+			std::uniform_int_distribution<> locDis(0, locatiesCount - 1);
+			int target = locDis(gen);
+			while (!visited[target])
+			{
+				target = locDis(gen);
+			}
+			adjacencyMatrix[i][target] = 1;
+			adjacencyMatrix[target][i] = 1;
+		}
+	}
+
+	delete[] visited;
+	delete[] toVisit;
 
 	// Set the exits based on the adjacency matrix
 	for (int i = 0; i < locatiesCount; ++i)
@@ -373,7 +528,7 @@ void Spelwereld::clear()
 	{
 		delete locatie;
 	}
-    mLocaties.clear();
+	mLocaties.clear();
 }
 
 void Spelwereld::copyFrom(const Spelwereld& other)

@@ -1,166 +1,158 @@
 #include "DatabaseLoader.h"
 #include <iostream>
+#include <stdexcept>
 
-CustomVector<Locatie*> DatabaseLoader::laadLocaties(const char* databaseBestand, int& count)
-{
-	CustomVector<Locatie*> locaties;
-	sqlite3* db;
-	sqlite3_stmt* stmt;
+// RAII wrapper for sqlite3 database connection
+class SQLiteDB {
+public:
+    SQLiteDB(const char* filename) {
+        if (sqlite3_open(filename, &db) != SQLITE_OK) {
+            throw std::runtime_error("Could not open database");
+        }
+    }
 
-	if (sqlite3_open(databaseBestand, &db) != SQLITE_OK)
-	{
-		std::cerr << "Kan database niet openen: " << sqlite3_errmsg(db) << std::endl;
-		return locaties;
-	}
+    ~SQLiteDB() {
+        if (db) {
+            sqlite3_close(db);
+        }
+    }
 
-	const char* sql = "SELECT naam, beschrijving FROM Locaties";
-	if (sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr) != SQLITE_OK)
-	{
-		std::cerr << "Kan SQL statement niet voorbereiden: " << sqlite3_errmsg(db) << std::endl;
-		sqlite3_close(db);
-		return locaties;
-	}
+    sqlite3* get() const { return db; }
 
-	std::random_device rd;
-	std::mt19937 gen(rd());
+private:
+    sqlite3* db = nullptr;
+};
 
-	LocatieFactory locatieFactory;
+// RAII wrapper for sqlite3 statement
+class SQLiteStmt {
+public:
+    SQLiteStmt(sqlite3* db, const char* sql) {
+        if (sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr) != SQLITE_OK) {
+            throw std::runtime_error("Failed to prepare statement");
+        }
+    }
 
-	while (sqlite3_step(stmt) == SQLITE_ROW)
-	{
-		const char* naam = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
-		const char* beschrijving = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
+    ~SQLiteStmt() {
+        if (stmt) {
+            sqlite3_finalize(stmt);
+        }
+    }
 
-		Locatie* locatie = locatieFactory.CreateLocatie(count, naam, beschrijving, beschrijving, "", "", "", "", "", "",
-														"", databaseBestand);
+    sqlite3_stmt* get() const { return stmt; }
 
-		locaties.push_back(locatie);
-		count++;
-	}
+private:
+    sqlite3_stmt* stmt = nullptr;
+};
 
-	sqlite3_finalize(stmt);
-	sqlite3_close(db);
+CustomVector<Locatie*> DatabaseLoader::laadLocaties(const char* databaseBestand, int& count) {
+    CustomVector<Locatie*> locaties;
 
-	return locaties;
+    try {
+        SQLiteDB db(databaseBestand);
+        const char* sql = "SELECT naam, beschrijving FROM Locaties";
+        SQLiteStmt stmt(db.get(), sql);
+
+        LocatieFactory locatieFactory;
+
+        while (sqlite3_step(stmt.get()) == SQLITE_ROW) {
+            const char* naam = reinterpret_cast<const char*>(sqlite3_column_text(stmt.get(), 0));
+            const char* beschrijving = reinterpret_cast<const char*>(sqlite3_column_text(stmt.get(), 1));
+
+            Locatie* locatie = locatieFactory.CreateLocatie(count, naam, beschrijving, beschrijving, "", "", "", "", "", "", "", databaseBestand);
+            locaties.push_back(locatie);
+            count++;
+        }
+    } catch (const std::exception& e) {
+        std::cerr << e.what() << std::endl;
+        count = 0;
+    }
+
+    return locaties;
 }
 
-CustomVector<Vijand*> DatabaseLoader::laadVijanden(const char* databaseBestand, int& count)
-{
-	sqlite3* db;
-	sqlite3_stmt* stmt;
-	const char* sql = "SELECT naam, omschrijving, minimumobjecten, maximumobjecten, levenspunten, aanvalskans, "
-					  "minimumschade, maximumschade FROM Vijanden";
+CustomVector<Vijand*> DatabaseLoader::laadVijanden(const char* databaseBestand, int& count) {
+    CustomVector<Vijand*> vijandenVector;
 
-	CustomVector<Vijand*> vijandenVector;
+    try {
+        SQLiteDB db(databaseBestand);
+        const char* sql = "SELECT naam, omschrijving, minimumobjecten, maximumobjecten, levenspunten, aanvalskans, minimumschade, maximumschade FROM Vijanden";
+        SQLiteStmt stmt(db.get(), sql);
 
-	if (sqlite3_open(databaseBestand, &db) != SQLITE_OK)
-	{
-		std::cerr << "Could not open database: " << sqlite3_errmsg(db) << std::endl;
-		count = 0;
-		return vijandenVector;
-	}
+        VijandFactory factory;
 
-	if (sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr) != SQLITE_OK)
-	{
-		std::cerr << "Failed to prepare statement: " << sqlite3_errmsg(db) << std::endl;
-		count = 0;
-		sqlite3_close(db);
-		return vijandenVector;
-	}
+        while (sqlite3_step(stmt.get()) == SQLITE_ROW) {
+            const char* naam = reinterpret_cast<const char*>(sqlite3_column_text(stmt.get(), 0));
+            const char* beschrijving = reinterpret_cast<const char*>(sqlite3_column_text(stmt.get(), 1));
+            int minimumobjecten = sqlite3_column_int(stmt.get(), 2);
+            int maximumobjecten = sqlite3_column_int(stmt.get(), 3);
+            int levenspunten = sqlite3_column_int(stmt.get(), 4);
+            int aanvalskans = sqlite3_column_int(stmt.get(), 5);
+            int minimumschade = sqlite3_column_int(stmt.get(), 6);
+            int maximumschade = sqlite3_column_int(stmt.get(), 7);
 
-	VijandFactory factory;
+            Vijand* vijand = factory.CreateVijand(naam, beschrijving, minimumobjecten, maximumobjecten, levenspunten, aanvalskans, minimumschade, maximumschade);
 
-	while (sqlite3_step(stmt) == SQLITE_ROW)
-	{
-		const char* naam = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
-		const char* beschrijving = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
-		int minimumobjecten = sqlite3_column_int(stmt, 2);
-		int maximumobjecten = sqlite3_column_int(stmt, 3);
-		int levenspunten = sqlite3_column_int(stmt, 4);
-		int aanvalskans = sqlite3_column_int(stmt, 5);
-		int minimumschade = sqlite3_column_int(stmt, 6);
-		int maximumschade = sqlite3_column_int(stmt, 7);
+            // Load random Spelobjecten for the Vijand
+            std::random_device rd;
+            std::mt19937 gen(rd());
+            std::uniform_int_distribution<> dis(minimumobjecten, maximumobjecten);
+            int aantalSpelobjecten = dis(gen);
 
-		Vijand* vijand = factory.CreateVijand(naam, beschrijving, minimumobjecten, maximumobjecten, levenspunten,
-											  aanvalskans, minimumschade, maximumschade);
+            int totalObjects = 34; // Total number of objects in the database
+            std::uniform_int_distribution<> objectDis(0, totalObjects - 1);
 
-		// Load random Spelobjecten for the Vijand
-		std::random_device rd;
-		std::mt19937 gen(rd());
-		std::uniform_int_distribution<> dis(minimumobjecten, maximumobjecten);
-		int aantalSpelobjecten = dis(gen);
+            for (int i = 0; i < aantalSpelobjecten; ++i) {
+                int randomIndex = objectDis(gen);
+                int dummyCount = 0;
+                CustomVector<Spelobject*> allSpelobjecten = laadSpelobjecten(databaseBestand, dummyCount);
+                if (randomIndex < allSpelobjecten.size()) {
+                    vijand->voegSpelobjectToe(allSpelobjecten[randomIndex]);
+                    allSpelobjecten[randomIndex] = nullptr;
+                }
+                for (auto& obj : allSpelobjecten) {
+                    delete obj;
+                }
+            }
 
-		int totalObjects = 34; // Total number of objects in the database
-		std::uniform_int_distribution<> objectDis(0, totalObjects - 1);
+            vijandenVector.push_back(vijand);
+        }
 
-		for (int i = 0; i < aantalSpelobjecten; ++i)
-		{
-			int randomIndex = objectDis(gen);
-			int dummyCount = 0;
-			CustomVector<Spelobject*> allSpelobjecten = laadSpelobjecten(databaseBestand, dummyCount);
-			if (randomIndex < allSpelobjecten.size())
-			{
-				vijand->voegSpelobjectToe(allSpelobjecten[randomIndex]);
-				allSpelobjecten[randomIndex] = nullptr;
-			}
-			for (auto& obj : allSpelobjecten)
-			{
-				delete obj;
-			}
-		}
+        count = vijandenVector.size();
+    } catch (const std::exception& e) {
+        std::cerr << e.what() << std::endl;
+        count = 0;
+    }
 
-		vijandenVector.push_back(vijand);
-	}
-
-	sqlite3_finalize(stmt);
-	sqlite3_close(db);
-	count = vijandenVector.size();
-
-	return vijandenVector;
+    return vijandenVector;
 }
 
-CustomVector<Spelobject*> DatabaseLoader::laadSpelobjecten(const char* databaseBestand, int& count)
-{
-	sqlite3* db;
-	sqlite3_stmt* stmt;
-	const char* sql = "SELECT naam, omschrijving, type, minimumwaarde, maximumwaarde, bescherming FROM Objecten";
+CustomVector<Spelobject*> DatabaseLoader::laadSpelobjecten(const char* databaseBestand, int& count) {
+    CustomVector<Spelobject*> spelobjectenVector;
 
-	CustomVector<Spelobject*> spelobjectenVector;
+    try {
+        SQLiteDB db(databaseBestand);
+        const char* sql = "SELECT naam, omschrijving, type, minimumwaarde, maximumwaarde, bescherming FROM Objecten";
+        SQLiteStmt stmt(db.get(), sql);
 
-	if (sqlite3_open(databaseBestand, &db) != SQLITE_OK)
-	{
-		std::cerr << "Could not open database: " << sqlite3_errmsg(db) << std::endl;
-		count = 0;
-		return spelobjectenVector;
-	}
+        SpelobjectFactory factory;
 
-	if (sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr) != SQLITE_OK)
-	{
-		std::cerr << "Failed to prepare statement: " << sqlite3_errmsg(db) << std::endl;
-		count = 0;
-		sqlite3_close(db);
-		return spelobjectenVector;
-	}
+        while (sqlite3_step(stmt.get()) == SQLITE_ROW) {
+            const char* naam = reinterpret_cast<const char*>(sqlite3_column_text(stmt.get(), 0));
+            const char* beschrijving = reinterpret_cast<const char*>(sqlite3_column_text(stmt.get(), 1));
+            const char* type = reinterpret_cast<const char*>(sqlite3_column_text(stmt.get(), 2));
+            int minimumwaarde = sqlite3_column_int(stmt.get(), 3);
+            int maximumwaarde = sqlite3_column_int(stmt.get(), 4);
+            int bescherming = sqlite3_column_int(stmt.get(), 5);
 
-	SpelobjectFactory factory;
+            Spelobject* object = factory.CreateSpelobject(naam, beschrijving, type, minimumwaarde, maximumwaarde, bescherming);
+            spelobjectenVector.push_back(object);
+        }
 
-	while (sqlite3_step(stmt) == SQLITE_ROW)
-	{
-		const char* naam = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
-		const char* beschrijving = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
-		const char* type = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2));
-		int minimumwaarde = sqlite3_column_int(stmt, 3);
-		int maximumwaarde = sqlite3_column_int(stmt, 4);
-		int bescherming = sqlite3_column_int(stmt, 5);
+        count = spelobjectenVector.size();
+    } catch (const std::exception& e) {
+        std::cerr << e.what() << std::endl;
+        count = 0;
+    }
 
-		Spelobject* object =
-			factory.CreateSpelobject(naam, beschrijving, type, minimumwaarde, maximumwaarde, bescherming);
-		spelobjectenVector.push_back(object);
-	}
-
-	count = spelobjectenVector.size();
-	sqlite3_finalize(stmt);
-	sqlite3_close(db);
-
-	return spelobjectenVector;
+    return spelobjectenVector;
 }

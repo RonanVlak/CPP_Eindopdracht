@@ -218,9 +218,10 @@ void SpelerActieHandler::gaNaar(const std::string& aRichting)
 		int nextLocationId = mSpelwereld.getCurrentLocatie()->getUitgang(aRichting.c_str());
 		if (nextLocationId != -1)
 		{
+			mSpelwereld.getEnemiesDamage();
 			mSpelwereld.setCurrentLocatie(mSpelwereld.getLocatieById(nextLocationId));
 			std::cout << "Je bent verplaats naar de richting  " << aRichting << "." << std::endl;
-			kijk(); // Show the new location
+			mGebruikersInterface.toonLocatie(mSpelwereld.getCurrentLocatie());
 		}
 		else
 		{
@@ -352,6 +353,21 @@ void SpelerActieHandler::bekijkVijand(const std::string& aVijandnaam)
 		if (vijand)
 		{
 			vijand->bekijk();
+			if (vijand->isVerslagen())
+			{
+				if (vijand->getAantalSpelobjecten() <= 0)
+				{
+					std::cout << "Vijand heeft geen objecten." << std::endl;
+				}
+				else
+				{
+					std::cout << "Objecten van " << vijand->getNaam() << ":" << std::endl;
+					for (int i = 0; i < vijand->getAantalSpelobjecten(); i++)
+					{
+						mSpelwereld.getCurrentLocatie()->voegZichtbaarObjectToe(vijand->getSpelobject(i));
+					}
+				}
+			}
 		}
 		else
 		{
@@ -373,17 +389,10 @@ void SpelerActieHandler::sla(const std::string& aVijandnaam)
 		Vijand* vijand = mSpelwereld.getCurrentLocatie()->getVijandByName(aVijandnaam);
 		if (vijand)
 		{
-			if (mSpeler.sla(vijand))
+			mSpeler.sla(vijand);
+			if (vijand->isVerslagen())
 			{
-				std::cout << "Je hebt " << vijand->getNaam() << " aangevallen." << std::endl;
-				if (vijand->isVerslagen())
-				{
-					std::cout << vijand->getNaam() << " is verslagen!" << std::endl;
-				}
-			}
-			else
-			{
-				std::cout << "Je hebt geen wapen om aan te vallen." << std::endl;
+				std::cout << vijand->getNaam() << " is verslagen!" << std::endl;
 			}
 		}
 		else
