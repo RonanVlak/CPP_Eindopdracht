@@ -16,7 +16,7 @@
 class SpelerActieHandler {
 public:
     SpelerActieHandler(std::unique_ptr<SpelwereldFacade>& aSpelwereld, std::unique_ptr<Speler>& aSpeler, std::unique_ptr<GebruikersInterface>& aGebruikersInterface);
-    ~SpelerActieHandler();
+    virtual ~SpelerActieHandler() = default;
 
     void verwerkActie(const std::string& aActie);
     void kijk();
@@ -32,9 +32,7 @@ public:
     void draagWapen(const std::string& aWapennaam);
     void wacht();
     void consumeer(const std::string& aObjectnaam);
-    void help();
     void godMode();
-    void quit();
 
 private:
     SpelwereldFacade& mSpelwereld;

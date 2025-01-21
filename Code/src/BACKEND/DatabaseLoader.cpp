@@ -1,4 +1,5 @@
 #include "DatabaseLoader.h"
+#include "RandomEngine.h"
 #include <iostream>
 #include <stdexcept>
 
@@ -93,16 +94,11 @@ CustomVector<Vijand*> DatabaseLoader::laadVijanden(const char* databaseBestand, 
             Vijand* vijand = factory.CreateVijand(naam, beschrijving, minimumobjecten, maximumobjecten, levenspunten, aanvalskans, minimumschade, maximumschade);
 
             // Load random Spelobjecten for the Vijand
-            std::random_device rd;
-            std::mt19937 gen(rd());
-            std::uniform_int_distribution<> dis(minimumobjecten, maximumobjecten);
-            int aantalSpelobjecten = dis(gen);
+            int aantalSpelobjecten = RandomEngine::getRandomInt(minimumobjecten, maximumobjecten);
 
             int totalObjects = 34; // Total number of objects in the database
-            std::uniform_int_distribution<> objectDis(0, totalObjects - 1);
-
             for (int i = 0; i < aantalSpelobjecten; ++i) {
-                int randomIndex = objectDis(gen);
+                int randomIndex = RandomEngine::getRandomInt(0, totalObjects - 1);
                 int dummyCount = 0;
                 CustomVector<Spelobject*> allSpelobjecten = laadSpelobjecten(databaseBestand, dummyCount);
                 if (randomIndex < allSpelobjecten.size()) {

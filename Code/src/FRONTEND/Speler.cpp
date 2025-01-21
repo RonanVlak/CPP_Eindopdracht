@@ -1,5 +1,6 @@
 #include "Speler.h"
 #include "GoudstukkenObject.h"
+#include "RandomEngine.h"
 #include "Vijand.h"
 #include <iostream>
 #include <random>
@@ -70,33 +71,30 @@ void Speler::draagWapenrusting(std::unique_ptr<WapenrustingObject> wapenrusting)
 
 void Speler::voegLevenspuntenToe(std::unique_ptr<ConsumeerbaarObject> obj)
 {
-    int levenspunten = 0;
-    if (obj->getEffect() != 0)
-    {
-        levenspunten = obj->getEffect();
-    }
-    else
-    {
-        std::random_device rd;
-        std::mt19937 gen(rd());
-        std::uniform_int_distribution<> dis(5, 15);
-        levenspunten = dis(gen);
-    }
+	int levenspunten = 0;
+	if (obj->getEffect() != 0)
+	{
+		levenspunten = obj->getEffect();
+	}
+	else
+	{
+		levenspunten = RandomEngine::getRandomInt(5, 15);
+	}
 
-    int currentLevenspunten = mLevenspunten;
-    int newLevenspunten = currentLevenspunten + levenspunten;
+	int currentLevenspunten = mLevenspunten;
+	int newLevenspunten = currentLevenspunten + levenspunten;
 
-    if (newLevenspunten > 100)
-    {
-        int gainedLevenspunten = 100 - currentLevenspunten;
-        std::cout << "Je hebt " << gainedLevenspunten << " levenspunten erbij gekregen." << std::endl;
-        mLevenspunten = 100;
-    }
-    else
-    {
-        std::cout << "Je hebt " << levenspunten << " levenspunten erbij gekregen." << std::endl;
-        mLevenspunten = newLevenspunten;
-    }
+	if (newLevenspunten > 100)
+	{
+		int gainedLevenspunten = 100 - currentLevenspunten;
+		std::cout << "Je hebt " << gainedLevenspunten << " levenspunten erbij gekregen." << std::endl;
+		mLevenspunten = 100;
+	}
+	else
+	{
+		std::cout << "Je hebt " << levenspunten << " levenspunten erbij gekregen." << std::endl;
+		mLevenspunten = newLevenspunten;
+	}
 }
 
 void Speler::toonGegevens() const
@@ -151,53 +149,48 @@ void Speler::voegGoudstukkenToe(int aantal) { mGoudstukken += aantal; }
 
 void Speler::voegObjectToe(Spelobject* obj)
 {
-    const std::string& objectNaam = obj->getNaam();
+	const std::string& objectNaam = obj->getNaam();
 
-    if (auto consumeerbaar = dynamic_cast<ConsumeerbaarObject*>(obj))
-    {
-        mConsumeerbareObjecten.push_back(std::unique_ptr<ConsumeerbaarObject>(consumeerbaar));
-    }
-    else if (auto wapen = dynamic_cast<WapenObject*>(obj))
-    {
+	if (auto consumeerbaar = dynamic_cast<ConsumeerbaarObject*>(obj))
+	{
+		mConsumeerbareObjecten.push_back(std::unique_ptr<ConsumeerbaarObject>(consumeerbaar));
+	}
+	else if (auto wapen = dynamic_cast<WapenObject*>(obj))
+	{
 		mWapenInventaris.push_back(std::unique_ptr<WapenObject>(wapen));
-    }
-    else if (auto wapenrusting = dynamic_cast<WapenrustingObject*>(obj))
-    {
-        mWapenrustingInventaris.push_back(std::unique_ptr<WapenrustingObject>(wapenrusting));
-    }
-    else if (auto goudstukken = dynamic_cast<GoudstukkenObject*>(obj))
-    {
-        voegGoudstukkenToe(goudstukken->getAantalGoudstukken());
-        delete goudstukken; // Properly delete the object
-    }
-    else
-    {
-        delete obj; // Properly delete the object
-        std::cout << "Onbekend object: " << objectNaam << std::endl;
-    }
+	}
+	else if (auto wapenrusting = dynamic_cast<WapenrustingObject*>(obj))
+	{
+		mWapenrustingInventaris.push_back(std::unique_ptr<WapenrustingObject>(wapenrusting));
+	}
+	else if (auto goudstukken = dynamic_cast<GoudstukkenObject*>(obj))
+	{
+		voegGoudstukkenToe(goudstukken->getAantalGoudstukken());
+		delete goudstukken; // Properly delete the object
+	}
+	else
+	{
+		delete obj; // Properly delete the object
+		std::cout << "Onbekend object: " << objectNaam << std::endl;
+	}
 }
 
 void Speler::sla(Vijand* vijand)
 {
 	if (vijand)
 	{
-		std::random_device rd;
-		std::mt19937 gen(rd());
-		std::uniform_int_distribution<> dis(1, 100);
+		int hitChance = RandomEngine::getRandomInt(1, 100);
 
-		int kans = dis(gen);
-		if (kans <= mAanvalskans)
+		if (hitChance <= mAanvalskans)
 		{
 			int schade = 0;
 			if (mWapen)
 			{
-				std::uniform_int_distribution<> schadeDis(mWapen->getMinimumSchade(), mWapen->getMaximumSchade());
-				schade = schadeDis(gen);
+				schade = RandomEngine::getRandomInt(mWapen->getMinimumSchade(), mWapen->getMaximumSchade());
 			}
 			else
 			{
-				std::uniform_int_distribution<> schadeDis(1, 2);
-				schade = schadeDis(gen);
+				schade = RandomEngine::getRandomInt(1, 2);
 			}
 			vijand->ontvangSchade(schade);
 			std::cout << "Je hebt " << vijand->getNaam() << " aangevallen en " << schade << " schade toegebracht."

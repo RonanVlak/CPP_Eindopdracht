@@ -1,7 +1,7 @@
 #include "Vijand.h"
 #include <cstring>
 #include <iostream>
-#include <random>
+#include "RandomEngine.h"
 
 Vijand::Vijand(const char* aNaam, const char* aBeschrijving, int aMinimumobjecten, int aMaximumobjecten,
 			   int aLevenspunten, int aAanvalskans, int aAanvalsschadeMin, int aAanvalsschadeMax)
@@ -106,22 +106,18 @@ void Vijand::removeSpelobject(Spelobject* spelobject)
 
 int Vijand::attack() const
 {
-	std::random_device rd;
-	std::mt19937 gen(rd());
-	std::uniform_int_distribution<> hitDis(1, 100);
-	int hitChance = hitDis(gen);
+    int hitChance = RandomEngine::getRandomInt(1, 100);
 
-	if (hitChance <= mAanvalskans)
-	{
-		std::uniform_int_distribution<> damageDis(mAanvalsschadeMin, mAanvalsschadeMax);
-		int damage = damageDis(gen);
-		return damage;
-	}
-	else
-	{
-		std::cout << mNaam << " mist zijn aanval." << std::endl;
-		return 0;
-	}
+    if (hitChance <= mAanvalskans)
+    {
+        int damage = RandomEngine::getRandomInt(mAanvalsschadeMin, mAanvalsschadeMax);
+        return damage;
+    }
+    else
+    {
+        std::cout << mNaam << " mist zijn aanval." << std::endl;
+        return 0;
+    }
 }
 
 void Vijand::setNaam(const char* naam)

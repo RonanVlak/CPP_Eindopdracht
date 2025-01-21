@@ -1,6 +1,6 @@
 #include "SpelerActieHandler.h"
 #include "SpelwereldFacade.h"
-#include <random>
+#include "RandomEngine.h"
 #include <iostream>
 
 SpelerActieHandler::SpelerActieHandler(std::unique_ptr<SpelwereldFacade>& aSpelwereld, std::unique_ptr<Speler>& aSpeler,
@@ -9,10 +9,6 @@ SpelerActieHandler::SpelerActieHandler(std::unique_ptr<SpelwereldFacade>& aSpelw
 {
 }
 
-SpelerActieHandler::~SpelerActieHandler()
-{
-	// No need to delete raw pointers as they are managed elsewhere
-}
 
 SpelerActieHandler::Actie SpelerActieHandler::stringNaarActie(const std::string& aActie)
 {
@@ -444,41 +440,37 @@ void SpelerActieHandler::wacht() { std::cout << "Je hebt gewacht." << std::endl;
 
 void SpelerActieHandler::consumeer(const std::string& aObjectnaam)
 {
-	for (auto it = mSpeler.getConsumeerbareObjecten().begin(); it != mSpeler.getConsumeerbareObjecten().end(); ++it)
-	{
-		if (std::string((*it)->getNaam()).find(aObjectnaam) != std::string::npos)
-		{
-			if (aObjectnaam.find("levenselixer") != std::string::npos)
-			{
-				mSpeler.voegLevenspuntenToe(std::move(*it));
-				std::cout << "Je hebt " << aObjectnaam << " geconsumeerd." << std::endl;
-			}
-			else if (aObjectnaam.find("ervaringsdrank") != std::string::npos)
-			{
-				int huidigeAanvalskans = mSpeler.getAanvalskans();
-				int nieuweAanvalskans = std::min(huidigeAanvalskans + 10, 90);
-				mSpeler.setAanvalskans(nieuweAanvalskans);
-				std::cout << "Je hebt " << aObjectnaam << " geconsumeerd." << std::endl;
-				std::cout << "Je aanvalskans is verhoogd naar " << nieuweAanvalskans << "%." << std::endl;
-			}
-			else if (aObjectnaam.find("teleportatiedrank") != std::string::npos)
-			{
-
-				std::random_device rd;
-				std::mt19937 gen(rd());
-				std::uniform_int_distribution<> dis(0, mSpelwereld.getLocatiesCount() - 1);
-				int nieuweLocatieIndex = dis(gen);
-				Locatie* nieuweLocatie = mSpelwereld.getLocatieByIndex(nieuweLocatieIndex);
-				mSpelwereld.setCurrentLocatie(nieuweLocatie);
-				std::cout << "Je hebt " << aObjectnaam << " geconsumeerd." << std::endl;
-				std::cout << "Je bent geteleporteerd naar een nieuwe locatie." << std::endl;
-				mGebruikersInterface.toonLocatie(mSpelwereld.getCurrentLocatie());
-			}
-			mSpeler.getConsumeerbareObjecten().erase(it);
-			return;
-		}
-	}
-	std::cout << "Object " << aObjectnaam << " is niet gevonden in je inventaris." << std::endl;
+    for (auto it = mSpeler.getConsumeerbareObjecten().begin(); it != mSpeler.getConsumeerbareObjecten().end(); ++it)
+    {
+        if (std::string((*it)->getNaam()).find(aObjectnaam) != std::string::npos)
+        {
+            if (aObjectnaam.find("levenselixer") != std::string::npos)
+            {
+                mSpeler.voegLevenspuntenToe(std::move(*it));
+                std::cout << "Je hebt " << aObjectnaam << " geconsumeerd." << std::endl;
+            }
+            else if (aObjectnaam.find("ervaringsdrank") != std::string::npos)
+            {
+                int huidigeAanvalskans = mSpeler.getAanvalskans();
+                int nieuweAanvalskans = std::min(huidigeAanvalskans + 10, 90);
+                mSpeler.setAanvalskans(nieuweAanvalskans);
+                std::cout << "Je hebt " << aObjectnaam << " geconsumeerd." << std::endl;
+                std::cout << "Je aanvalskans is verhoogd naar " << nieuweAanvalskans << "%." << std::endl;
+            }
+            else if (aObjectnaam.find("teleportatiedrank") != std::string::npos)
+            {
+                int nieuweLocatieIndex = RandomEngine::getRandomInt(0, mSpelwereld.getLocatiesCount() - 1);
+                Locatie* nieuweLocatie = mSpelwereld.getLocatieByIndex(nieuweLocatieIndex);
+                mSpelwereld.setCurrentLocatie(nieuweLocatie);
+                std::cout << "Je hebt " << aObjectnaam << " geconsumeerd." << std::endl;
+                std::cout << "Je bent geteleporteerd naar een nieuwe locatie." << std::endl;
+                mGebruikersInterface.toonLocatie(mSpelwereld.getCurrentLocatie());
+            }
+            mSpeler.getConsumeerbareObjecten().erase(it);
+            return;
+        }
+    }
+    std::cout << "Object " << aObjectnaam << " is niet gevonden in je inventaris." << std::endl;
 }
 
 void SpelerActieHandler::godMode()

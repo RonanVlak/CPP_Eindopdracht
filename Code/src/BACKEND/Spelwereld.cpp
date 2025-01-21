@@ -1,5 +1,6 @@
 #include "Spelwereld.h"
 #include "DatabaseLoader.h"
+#include "RandomEngine.h"
 #include "WapenObject.h"
 #include <algorithm>
 #include <cstdlib>
@@ -129,10 +130,7 @@ void Spelwereld::verplaatsVijanden()
 					Vijand* vijand = locatie->getVijand(j);
 					if (vijand && !vijand->isVerslagen())
 					{
-						std::random_device rd;
-						std::mt19937 gen(rd());
-						std::uniform_int_distribution<> dis(1, 100);
-						int moveChance = dis(gen);
+						int moveChance = RandomEngine::getRandomInt(1, 100);
 
 						if (moveChance <= 50)
 						{ // 50% chance to move
@@ -140,8 +138,8 @@ void Spelwereld::verplaatsVijanden()
 							CustomVector<Locatie*> adjacentLocations = getAdjacentLocations(locatie);
 							if (adjacentLocations.size() > 0)
 							{
-								std::uniform_int_distribution<> locDis(0, adjacentLocations.size() - 1);
-								Locatie* newLocation = adjacentLocations[locDis(gen)];
+								int randomIndex = RandomEngine::getRandomInt(0, adjacentLocations.size() - 1);
+								Locatie* newLocation = adjacentLocations[randomIndex];
 								newLocation->voegVijandToe(vijand);
 								std::cout << vijand->getNaam() << " is verplaatst naar " << newLocation->getNaam()
 										  << "." << std::endl;
@@ -195,8 +193,7 @@ void Spelwereld::generateRandomKerker(const char* databaseBestand)
 	CustomVector<Spelobject*> objecten = dbLoader.laadSpelobjecten(databaseBestand, objectCount);
 
 	// Randomly select a subset of locations
-	std::random_device rd;
-	std::mt19937 gen(rd());
+	std::mt19937& gen = RandomEngine::getInstance();
 	int locatiesSize = locaties.size();
 	std::shuffle(locaties.begin(), locaties.end(), gen);
 
@@ -212,8 +209,7 @@ void Spelwereld::generateRandomKerker(const char* databaseBestand)
 		// Add exactly one enemy per 3 locations (rounded up)
 		if (i % 3 == 0 && i / 3 < numEnemiesRequired && !vijanden.isEmpty())
 		{
-			std::uniform_int_distribution<> vijandDis(0, vijanden.size() - 1);
-			int randomIndex = vijandDis(gen);
+			int randomIndex = RandomEngine::getRandomInt(0, vijanden.size() - 1);
 			if (randomIndex >= 0 && randomIndex < vijanden.size() && vijanden[randomIndex] != nullptr)
 			{
 				Vijand* vijand = vijanden[randomIndex];
@@ -234,14 +230,12 @@ void Spelwereld::generateRandomKerker(const char* databaseBestand)
 				}
 
 				// Assign random spelobjecten to the vijand
-				std::uniform_int_distribution<> objectDis(vijand->getMinimumObjecten(), vijand->getMaximumObjecten());
-				int numObjects = objectDis(gen);
+				int numObjects = RandomEngine::getRandomInt(vijand->getMinimumObjecten(), vijand->getMaximumObjecten());
 				for (int k = 0; k < numObjects; ++k)
 				{
 					if (!objecten.isEmpty())
 					{
-						std::uniform_int_distribution<> objDis(0, objecten.size() - 1);
-						int objIndex = objDis(gen);
+						int objIndex = RandomEngine::getRandomInt(0, objecten.size() - 1);
 						if (objIndex >= 0 && objIndex < objecten.size() && objecten[objIndex] != nullptr)
 						{
 							Spelobject* object = objecten[objIndex];
@@ -276,11 +270,10 @@ void Spelwereld::generateRandomKerker(const char* databaseBestand)
 		// Add random objects to the location
 		if (!objecten.isEmpty())
 		{
-			std::uniform_int_distribution<> objectDis(0, objecten.size() - 1);
-			int numObjects = objectDis(gen) % 3 + 1; // Random number of objects between 1 and 3
+			int numObjects = RandomEngine::getRandomInt(1, 3); // Random number of objects between 1 and 3
 			for (int j = 0; j < numObjects; ++j)
 			{
-				int randomIndex = objectDis(gen);
+				int randomIndex = RandomEngine::getRandomInt(0, objecten.size() - 1);
 				if (randomIndex >= 0 && randomIndex < objecten.size() && objecten[randomIndex] != nullptr)
 				{
 					Spelobject* object = objecten[randomIndex];
@@ -309,11 +302,10 @@ void Spelwereld::generateRandomKerker(const char* databaseBestand)
 		// Add random hidden objects to the location
 		if (!objecten.isEmpty())
 		{
-			std::uniform_int_distribution<> hiddenObjectDis(0, objecten.size() - 1);
-			int numHiddenObjects = hiddenObjectDis(gen) % 3; // Random number of hidden objects between 0 and 2
+			int numHiddenObjects = RandomEngine::getRandomInt(0, 2); // Random number of hidden objects between 0 and 2
 			for (int j = 0; j < numHiddenObjects; ++j)
 			{
-				int randomIndex = hiddenObjectDis(gen);
+				int randomIndex = RandomEngine::getRandomInt(0, objecten.size() - 1);
 				if (randomIndex >= 0 && randomIndex < objecten.size() && objecten[randomIndex] != nullptr)
 				{
 					Spelobject* object = objecten[randomIndex];
@@ -376,13 +368,11 @@ void Spelwereld::generateRandomKerker(const char* databaseBestand)
 	// Ensure each room has between 1 and 4 exits and is accessible
 	for (int i = 0; i < locatiesCount; ++i)
 	{
-		std::uniform_int_distribution<> exitDis(1, 4);
-		int numExits = exitDis(gen);
+		int numExits = RandomEngine::getRandomInt(1, 4);
 
 		for (int e = 0; e < numExits; ++e)
 		{
-			std::uniform_int_distribution<> locDis(0, locatiesCount - 1);
-			int target = locDis(gen);
+			int target = RandomEngine::getRandomInt(0, locatiesCount - 1);
 
 			if (target != i && adjacencyMatrix[i][target] == 0)
 			{
@@ -423,11 +413,10 @@ void Spelwereld::generateRandomKerker(const char* databaseBestand)
 		if (!visited[i])
 		{
 			// Connect this room to a random visited room
-			std::uniform_int_distribution<> locDis(0, locatiesCount - 1);
-			int target = locDis(gen);
+			int target = RandomEngine::getRandomInt(0, locatiesCount - 1);
 			while (!visited[target])
 			{
-				target = locDis(gen);
+				target = RandomEngine::getRandomInt(0, locatiesCount - 1);
 			}
 			adjacencyMatrix[i][target] = 1;
 			adjacencyMatrix[target][i] = 1;
