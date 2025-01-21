@@ -236,47 +236,47 @@ void SpelerActieHandler::gaNaar(const std::string& aRichting)
 
 void SpelerActieHandler::pak(const std::string& aObjectnaam)
 {
-	if (mSpelwereld.getCurrentLocatie())
-	{
-		// Check if the object is in the current location
-		for (int i = 0; i < mSpelwereld.getCurrentLocatie()->getZichtbareObjectenCount(); ++i)
-		{
-			Spelobject* obj = mSpelwereld.getCurrentLocatie()->getZichtbaarObject(i);
-			if (obj && obj->getNaam() == aObjectnaam)
-			{
-				mSpeler.voegObjectToe(std::unique_ptr<Spelobject>(obj));
-				mSpelwereld.getCurrentLocatie()->verwijderZichtbaarObject(obj);
-				std::cout << "Je hebt een item opgepakt: " << aObjectnaam << "." << std::endl;
-				return;
-			}
-		}
-		// Check if the object is with a defeated enemy
-		for (int i = 0; i < mSpelwereld.getCurrentLocatie()->getVijandenCount(); ++i)
-		{
-			Vijand* vijand = mSpelwereld.getCurrentLocatie()->getVijand(i);
-			if (vijand && vijand->isVerslagen())
-			{
-				for (int j = 0; j < vijand->getAantalSpelobjecten(); ++j)
-				{
-					Spelobject* obj = vijand->getSpelobject(j);
-					if (obj && obj->getNaam() == aObjectnaam)
-					{
-						mSpeler.voegObjectToe(std::unique_ptr<Spelobject>(obj));
-						vijand->removeSpelobject(obj);
-						std::cout << "Je hebt een item opgepakt van " << vijand->getNaam() << ": " << aObjectnaam << "."
-								  << std::endl;
-						return;
-					}
-				}
-			}
-		}
+    if (mSpelwereld.getCurrentLocatie())
+    {
+        // Check if the object is in the current location
+        for (int i = 0; i < mSpelwereld.getCurrentLocatie()->getZichtbareObjectenCount(); ++i)
+        {
+            Spelobject* obj = mSpelwereld.getCurrentLocatie()->getZichtbaarObject(i);
+            if (obj && obj->getNaam() == aObjectnaam)
+            {
+                mSpeler.voegObjectToe(obj);
+                mSpelwereld.getCurrentLocatie()->verwijderZichtbaarObject(obj);
+                std::cout << "Je hebt een item opgepakt: " << aObjectnaam << "." << std::endl;
+                return;
+            }
+        }
+        // Check if the object is with a defeated enemy
+        for (int i = 0; i < mSpelwereld.getCurrentLocatie()->getVijandenCount(); ++i)
+        {
+            Vijand* vijand = mSpelwereld.getCurrentLocatie()->getVijand(i);
+            if (vijand && vijand->isVerslagen())
+            {
+                for (int j = 0; j < vijand->getAantalSpelobjecten(); ++j)
+                {
+                    Spelobject* obj = vijand->getSpelobject(j);
+                    if (obj && obj->getNaam() == aObjectnaam)
+                    {
+                        mSpeler.voegObjectToe(obj);
+                        vijand->removeSpelobject(obj);
+                        std::cout << "Je hebt een item opgepakt van " << vijand->getNaam() << ": " << aObjectnaam << "."
+                                  << std::endl;
+                        return;
+                    }
+                }
+            }
+        }
 
-		std::cout << "Object " << aObjectnaam << " is niet gevonden in je huidige locatie." << std::endl;
-	}
-	else
-	{
-		std::cout << "Je bent niet in een valide locatie." << std::endl;
-	}
+        std::cout << "Object " << aObjectnaam << " is niet gevonden in je huidige locatie." << std::endl;
+    }
+    else
+    {
+        std::cout << "Je bent niet in een valide locatie." << std::endl;
+    }
 }
 
 void SpelerActieHandler::legNeer(const std::string& aObjectnaam)
@@ -415,7 +415,7 @@ void SpelerActieHandler::draagWapenrusting(const std::string& aWapenrustingnaam)
 			auto huidigWapen = std::move(mSpeler.getHuidigWapen());
 			mSpeler.draagWapenrusting(std::move(mSpeler.getWapenrustingInventaris()[i]));
 			mSpeler.getWapenrustingInventaris().erase(mSpeler.getWapenrustingInventaris().begin() + i);
-			mSpeler.voegObjectToe(std::move(huidigWapen));
+			mSpeler.voegObjectToe(huidigWapen.release());
 			std::cout << "Je draagt nu " << aWapenrustingnaam << "." << std::endl;
 			return;
 		}

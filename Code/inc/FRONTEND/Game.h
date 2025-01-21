@@ -26,7 +26,6 @@ public:
 	void initSpeler(const std::string& naam, const std::string& dbPath);
 	void verwerkActie(const std::string& actie);
 	void genereerRandomKerker(const std::string& databaseBestand);
-	void listFilesInDirectory(const std::string& directory);
 
 private:
 	enum class State
@@ -42,7 +41,9 @@ private:
 	void gameMenu();
 	void gameplay();
 	void deathMenu();
-	void printLeaderboard(const std::string& dbPath);
+	void printLeaderboard(const std::string& dbPath) const;
+	void listFilesInDirectory(const std::string& directory) const;
+	std::string enterXMLFile(const std::string& resourcesDirectory) const;
 
 	bool mRandomDungeon;
 	bool mXMLDungeon;

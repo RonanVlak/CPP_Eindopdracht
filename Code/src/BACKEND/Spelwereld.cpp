@@ -200,77 +200,76 @@ void Spelwereld::generateRandomKerker(const char* databaseBestand)
 	int locatiesSize = locaties.size();
 	std::shuffle(locaties.begin(), locaties.end(), gen);
 
+	// Calculate the number of enemies required
+	int numEnemiesRequired = std::ceil(static_cast<float>(locatiesSize) / 3.0f);
+
 	// Add the selected locations to the game world and assign sequential IDs
 	for (int i = 0; i < std::min(10, static_cast<int>(locaties.size())); ++i)
 	{
 		Locatie* locatie = locaties[i];
-		locatie->setID(i); // Assign sequential IDs from 1 to 10
+		locatie->setID(i); // Assign sequential IDs
 
-		// Add random enemies to the location
-		if (!vijanden.isEmpty())
+		// Add exactly one enemy per 3 locations (rounded up)
+		if (i % 3 == 0 && i / 3 < numEnemiesRequired && !vijanden.isEmpty())
 		{
 			std::uniform_int_distribution<> vijandDis(0, vijanden.size() - 1);
-			int numEnemies = vijandDis(gen) % 3; // Random number of enemies between 0 and 2
-			for (int j = 0; j < numEnemies; ++j)
+			int randomIndex = vijandDis(gen);
+			if (randomIndex >= 0 && randomIndex < vijanden.size() && vijanden[randomIndex] != nullptr)
 			{
-				int randomIndex = vijandDis(gen);
-				if (randomIndex >= 0 && randomIndex < vijanden.size() && vijanden[randomIndex] != nullptr)
+				Vijand* vijand = vijanden[randomIndex];
+
+				// Ensure unique name for the vijand
+				char vijandNaam[256];
+				strcpy(vijandNaam, vijand->getNaam());
+				int vijandId = 1;
+				for (int k = 0; k < vijanden.size(); ++k)
 				{
-					Vijand* vijand = vijanden[randomIndex];
-
-					// Ensure unique name for the vijand
-					char vijandNaam[256];
-					strcpy(vijandNaam, vijand->getNaam());
-					int vijandId = 1;
-					for (int k = 0; k < vijanden.size(); ++k)
+					if (vijanden[k] != nullptr && strcmp(vijanden[k]->getNaam(), vijandNaam) == 0)
 					{
-						if (vijanden[k] != nullptr && strcmp(vijanden[k]->getNaam(), vijandNaam) == 0)
-						{
-							char newVijandNaam[256];
-							snprintf(newVijandNaam, sizeof(newVijandNaam) - 1, "%.245s%d", vijandNaam, vijandId++);
-							newVijandNaam[sizeof(newVijandNaam) - 1] = '\0';
-							vijand->setNaam(newVijandNaam);
-						}
+						char newVijandNaam[256];
+						snprintf(newVijandNaam, sizeof(newVijandNaam) - 1, "%.245s%d", vijandNaam, vijandId++);
+						newVijandNaam[sizeof(newVijandNaam) - 1] = '\0';
+						vijand->setNaam(newVijandNaam);
 					}
-
-					// Assign random spelobjecten to the vijand
-					std::uniform_int_distribution<> objectDis(vijand->getMinimumObjecten(),
-															  vijand->getMaximumObjecten());
-					int numObjects = objectDis(gen);
-					for (int k = 0; k < numObjects; ++k)
-					{
-						if (!objecten.isEmpty())
-						{
-							std::uniform_int_distribution<> objDis(0, objecten.size() - 1);
-							int objIndex = objDis(gen);
-							if (objIndex >= 0 && objIndex < objecten.size() && objecten[objIndex] != nullptr)
-							{
-								Spelobject* object = objecten[objIndex];
-
-								// Ensure unique name for the object
-								char objectNaam[256];
-								strcpy(objectNaam, object->getNaam());
-								int objectId = 1;
-								for (int l = 0; l < objecten.size(); ++l)
-								{
-									if (objecten[l] != nullptr && strcmp(objecten[l]->getNaam(), objectNaam) == 0)
-									{
-										char newObjectNaam[256];
-										snprintf(newObjectNaam, sizeof(newObjectNaam) - 1, "%.245s%d", objectNaam,
-												 objectId++);
-										newObjectNaam[sizeof(newObjectNaam) - 1] = '\0';
-										object->setNaam(newObjectNaam);
-									}
-								}
-
-								vijand->voegSpelobjectToe(object);
-								objecten[objIndex] = nullptr; // Mark as moved
-							}
-						}
-					}
-					locatie->voegVijandToe(vijand);
-					vijanden[randomIndex] = nullptr; // Mark as moved
 				}
+
+				// Assign random spelobjecten to the vijand
+				std::uniform_int_distribution<> objectDis(vijand->getMinimumObjecten(), vijand->getMaximumObjecten());
+				int numObjects = objectDis(gen);
+				for (int k = 0; k < numObjects; ++k)
+				{
+					if (!objecten.isEmpty())
+					{
+						std::uniform_int_distribution<> objDis(0, objecten.size() - 1);
+						int objIndex = objDis(gen);
+						if (objIndex >= 0 && objIndex < objecten.size() && objecten[objIndex] != nullptr)
+						{
+							Spelobject* object = objecten[objIndex];
+
+							// Ensure unique name for the object
+							char objectNaam[256];
+							strcpy(objectNaam, object->getNaam());
+							int objectId = 1;
+							for (int l = 0; l < objecten.size(); ++l)
+							{
+								if (objecten[l] != nullptr && strcmp(objecten[l]->getNaam(), objectNaam) == 0)
+								{
+									char newObjectNaam[256];
+									snprintf(newObjectNaam, sizeof(newObjectNaam) - 1, "%.245s%d", objectNaam,
+											 objectId++);
+									newObjectNaam[sizeof(newObjectNaam) - 1] = '\0';
+									object->setNaam(newObjectNaam);
+								}
+							}
+
+							vijand->voegSpelobjectToe(object);
+							objecten[objIndex] = nullptr; // Mark as moved
+						}
+					}
+				}
+
+				locatie->voegVijandToe(vijand);
+				vijanden[randomIndex] = nullptr; // Mark as moved
 			}
 		}
 

@@ -70,33 +70,33 @@ void Speler::draagWapenrusting(std::unique_ptr<WapenrustingObject> wapenrusting)
 
 void Speler::voegLevenspuntenToe(std::unique_ptr<ConsumeerbaarObject> obj)
 {
-	int levenspunten = 0;
-	int currentLevenspunten = 0;
-	if (obj->getEffect() != 0)
-	{
-		levenspunten = obj->getEffect();
-	}
-	else
-	{
-		std::random_device rd;
-		std::mt19937 gen(rd());
-		std::uniform_int_distribution<> dis(5, 15);
-		levenspunten = dis(gen);
-	}
-	currentLevenspunten = mLevenspunten;
-	levenspunten = std::min(currentLevenspunten + levenspunten, 100);
-	mLevenspunten = levenspunten;
-	int overigeLevenspunten = 0;
-	if (mLevenspunten > 100)
-	{ // Assuming 100 is the maximum health
-		overigeLevenspunten = mLevenspunten - 100;
-		std::cout << "Je hebt " << overigeLevenspunten << " levenspunten erbij gekregen." << std::endl;
+    int levenspunten = 0;
+    if (obj->getEffect() != 0)
+    {
+        levenspunten = obj->getEffect();
+    }
+    else
+    {
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::uniform_int_distribution<> dis(5, 15);
+        levenspunten = dis(gen);
+    }
 
-		mLevenspunten = 100;
+    int currentLevenspunten = mLevenspunten;
+    int newLevenspunten = currentLevenspunten + levenspunten;
 
-		return;
-	}
-	std::cout << "Je hebt " << levenspunten << " levenspunten erbij gekregen." << std::endl;
+    if (newLevenspunten > 100)
+    {
+        int gainedLevenspunten = 100 - currentLevenspunten;
+        std::cout << "Je hebt " << gainedLevenspunten << " levenspunten erbij gekregen." << std::endl;
+        mLevenspunten = 100;
+    }
+    else
+    {
+        std::cout << "Je hebt " << levenspunten << " levenspunten erbij gekregen." << std::endl;
+        mLevenspunten = newLevenspunten;
+    }
 }
 
 void Speler::toonGegevens() const
@@ -149,34 +149,32 @@ void Speler::toonGegevens() const
 
 void Speler::voegGoudstukkenToe(int aantal) { mGoudstukken += aantal; }
 
-void Speler::voegObjectToe(std::unique_ptr<Spelobject> obj)
+void Speler::voegObjectToe(Spelobject* obj)
 {
-	const std::string& objectNaam = obj->getNaam();
+    const std::string& objectNaam = obj->getNaam();
 
-	if (auto consumeerbaar = dynamic_cast<ConsumeerbaarObject*>(obj.get()))
-	{
-		mConsumeerbareObjecten.push_back(std::unique_ptr<ConsumeerbaarObject>(consumeerbaar));
-		obj.release();
-	}
-	else if (auto wapen = dynamic_cast<WapenObject*>(obj.get()))
-	{
+    if (auto consumeerbaar = dynamic_cast<ConsumeerbaarObject*>(obj))
+    {
+        mConsumeerbareObjecten.push_back(std::unique_ptr<ConsumeerbaarObject>(consumeerbaar));
+    }
+    else if (auto wapen = dynamic_cast<WapenObject*>(obj))
+    {
 		mWapenInventaris.push_back(std::unique_ptr<WapenObject>(wapen));
-		obj.release();
-	}
-	else if (auto wapenrusting = dynamic_cast<WapenrustingObject*>(obj.get()))
-	{
-		mWapenrustingInventaris.push_back(std::unique_ptr<WapenrustingObject>(wapenrusting));
-		obj.release();
-	}
-	else if (auto goudstukken = dynamic_cast<GoudstukkenObject*>(obj.get()))
-	{
-		voegGoudstukkenToe(goudstukken->getAantalGoudstukken());
-		obj.release();
-	}
-	else
-	{
-		std::cout << "Onbekend object: " << objectNaam << std::endl;
-	}
+    }
+    else if (auto wapenrusting = dynamic_cast<WapenrustingObject*>(obj))
+    {
+        mWapenrustingInventaris.push_back(std::unique_ptr<WapenrustingObject>(wapenrusting));
+    }
+    else if (auto goudstukken = dynamic_cast<GoudstukkenObject*>(obj))
+    {
+        voegGoudstukkenToe(goudstukken->getAantalGoudstukken());
+        delete goudstukken; // Properly delete the object
+    }
+    else
+    {
+        delete obj; // Properly delete the object
+        std::cout << "Onbekend object: " << objectNaam << std::endl;
+    }
 }
 
 void Speler::sla(Vijand* vijand)
@@ -318,7 +316,21 @@ void Speler::clear()
 {
 	mWapen.reset();
 	mWapenrusting.reset();
+	for (auto& obj : mConsumeerbareObjecten)
+	{
+		obj.reset();
+	}
 	mConsumeerbareObjecten.clear();
+
+	for (auto& obj : mWapenInventaris)
+	{
+		obj.reset();
+	}
 	mWapenInventaris.clear();
+
+	for (auto& obj : mWapenrustingInventaris)
+	{
+		obj.reset();
+	}
 	mWapenrustingInventaris.clear();
 }

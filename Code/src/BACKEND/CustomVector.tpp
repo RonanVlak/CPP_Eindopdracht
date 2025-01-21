@@ -53,6 +53,7 @@ void CustomVector<T>::erase(std::size_t index) {
     if (index >= vectorSize) {
         throw std::out_of_range("Index out of bounds");
     }
+
     for (std::size_t i = index; i < vectorSize - 1; ++i) {
         data[i] = data[i + 1];
     }

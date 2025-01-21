@@ -143,14 +143,7 @@ void Game::gameMenu()
 			return;							 // Exit the menu function to proceed to gameplay
 		case 2:
 		{
-			std::cout << "XML Files in " << resourcesDirectory << ":" << std::endl;
-			listFilesInDirectory(resourcesDirectory);
-
-			std::cout << "Voer de naam van een XML File in: ";
-			char fileName[256];
-			std::cin.getline(fileName, sizeof(fileName));
-
-			std::string filePath = fsConverter.getResourcePath(fileName);
+			std::string filePath = enterXMLFile(resourcesDirectory);
 			if (filePath.empty() || filePath.substr(filePath.find_last_of(".") + 1) != "xml")
 			{
 				std::cout << "File kon niet gevonden worden." << std::endl;
@@ -179,6 +172,7 @@ void Game::gameplay()
 {
 	mSpelwereld->setCurrentLocatie(mSpelwereld->getLocatieByIndex(0));
 	mGebruikersInterface->toonLocatie(mSpelwereld->getCurrentLocatie());
+
 	while (mCurrentState == State::Gameplay)
 	{
 		std::string action = mGebruikersInterface->vraagActie();
@@ -215,8 +209,7 @@ void Game::gameplay()
 				{
 					std::cout << "Je bent verslagen!" << std::endl;
 					DatabaseLoader dbLoader;
-					dbLoader.voegLeaderboardToe(mDbPath.c_str(), mSpeler->getNaam().c_str(),
-												mSpeler->getGoudstukken());
+					dbLoader.voegLeaderboardToe(mDbPath.c_str(), mSpeler->getNaam().c_str(), mSpeler->getGoudstukken());
 					mCurrentState = State::DeathMenu;
 				}
 				else
@@ -233,8 +226,12 @@ void Game::gameplay()
 void Game::deathMenu()
 {
 	initSpeler(mPlayerName, mDbPath);
-	printLeaderboard(mDbPath);;
+	printLeaderboard(mDbPath);
+	;
 	mSpelwereld->clear();
+
+	FSConverter fsConverter;
+	std::string resourcesDirectory = fsConverter.getResourcePath("");
 	while (true)
 	{
 		std::cout << "Wat wil je doen?" << std::endl;
@@ -262,7 +259,19 @@ void Game::deathMenu()
 			}
 			else
 			{
-				laadKerkerVanXML("kerker.xml", "kerkersendraken.db");
+				std::string filePath = enterXMLFile(resourcesDirectory);
+				if (filePath.empty() || filePath.substr(filePath.find_last_of(".") + 1) != "xml")
+				{
+					std::cout << "File kon niet gevonden worden." << std::endl;
+				}
+				else
+				{
+					laadKerkerVanXML(filePath, mDbPath);
+					mXMLDungeon = true;				 // Set XML dungeon flag to true
+					mRandomDungeon = false;			 // Set random dungeon flag to false
+					mCurrentState = State::Gameplay; // Set the state to gameplay
+					return;							 // Exit the menu function to proceed to gameplay
+				}
 			}
 			mCurrentState = State::Gameplay; // Set the state to gameplay
 			return;							 // Exit the menu function to restart the game
@@ -310,7 +319,7 @@ void Game::genereerRandomKerker(const std::string& databaseBestand)
 	std::cout << "Random dungeon generated!" << std::endl;
 }
 
-void Game::listFilesInDirectory(const std::string& directory)
+void Game::listFilesInDirectory(const std::string& directory) const
 {
 	for (const auto& entry : fs::directory_iterator(directory))
 	{
@@ -321,9 +330,24 @@ void Game::listFilesInDirectory(const std::string& directory)
 	}
 }
 
-void Game::printLeaderboard(const std::string& dbPath)
+void Game::printLeaderboard(const std::string& dbPath) const
 {
 	DatabaseLoader dbLoader;
 	std::cout << "Leaderboard:" << std::endl;
 	dbLoader.printLeaderboard(dbPath.c_str());
+}
+
+std::string Game::enterXMLFile(const std::string& resourcesDirectory) const
+{
+
+	std::cout << "XML Files in " << resourcesDirectory << ":" << std::endl;
+	listFilesInDirectory(resourcesDirectory);
+
+	std::cout << "Voer de naam van een XML File in: ";
+	char fileName[256];
+	std::cin.getline(fileName, sizeof(fileName));
+
+	FSConverter fsConverter;
+	std::string filePath = fsConverter.getResourcePath(fileName);
+	return filePath;
 }

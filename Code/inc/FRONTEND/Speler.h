@@ -28,7 +28,7 @@ public:
 	void voegLevenspuntenToe(std::unique_ptr<ConsumeerbaarObject> obj);
 	void toonGegevens() const;
 	void voegGoudstukkenToe(int aantal);
-	void voegObjectToe(std::unique_ptr<Spelobject> obj);
+	void voegObjectToe(Spelobject* obj);
 	void sla(Vijand* vijand);
 	void applyDamage(int damage);
 
