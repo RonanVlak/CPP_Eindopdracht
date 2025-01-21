@@ -45,7 +45,7 @@ void GebruikersInterface::toonHelp() {
 }
 
 void GebruikersInterface::toonEindeSpel() {
-    std::cout << "Game over. Thank you for playing!" << std::endl;
+    std::cout << "Game over." << std::endl;
 }
 
 std::string GebruikersInterface::vraagSpelerNaam() {
