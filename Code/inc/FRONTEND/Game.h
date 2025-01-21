@@ -51,7 +51,7 @@ private:
     std::string mDbPath;
 
 	State mCurrentState;
-	std::unique_ptr<Spelwereld> mSpelwereld;
+	std::unique_ptr<SpelwereldFacade> mSpelwereld;
 	std::unique_ptr<Speler> mSpeler;
 	std::unique_ptr<SpelerActieHandler> mSpelerActieHandler;
 	std::unique_ptr<GebruikersInterface> mGebruikersInterface;

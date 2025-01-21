@@ -27,12 +27,13 @@ public:
 	int getEnemiesDamage();
 	void generateRandomKerker(const char* databaseBestand);
 	WapenObject* getStartWapen(const char* dbPath);
+	CustomVector<Locatie*> getAdjacentLocations(Locatie* locatie);
+
 	void clear();
 
 private:
 	void copyFrom(const Spelwereld& other);
 	void moveFrom(Spelwereld&& other) noexcept;
-	CustomVector<Locatie*> getAdjacentLocations(Locatie* locatie);
 
 private:
 	CustomVector<Locatie*> mLocaties;

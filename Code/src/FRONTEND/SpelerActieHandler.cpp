@@ -1,7 +1,9 @@
 #include "SpelerActieHandler.h"
+#include "SpelwereldFacade.h"
+#include <random>
 #include <iostream>
 
-SpelerActieHandler::SpelerActieHandler(std::unique_ptr<Spelwereld>& aSpelwereld, std::unique_ptr<Speler>& aSpeler,
+SpelerActieHandler::SpelerActieHandler(std::unique_ptr<SpelwereldFacade>& aSpelwereld, std::unique_ptr<Speler>& aSpeler,
 									   std::unique_ptr<GebruikersInterface>& aGebruikersInterface)
 	: mSpelwereld(*aSpelwereld), mSpeler(*aSpeler), mGebruikersInterface(*aGebruikersInterface)
 {

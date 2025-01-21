@@ -1,6 +1,7 @@
 #include "FRONTEND/Game.h"
 #include "BACKEND/LocatieFactory.h"
 #include "BACKEND/XMLParser.h"
+#include "FRONTEND/SpelwereldFacade.h"
 #include "FSConverter.h"
 #include <algorithm>
 #include <filesystem>
@@ -9,7 +10,7 @@
 namespace fs = std::filesystem;
 
 Game::Game()
-	: mCurrentState(State::MainMenu), mSpelwereld(std::make_unique<Spelwereld>()),
+	: mCurrentState(State::MainMenu), mSpelwereld(std::make_unique<SpelwereldFacade>()),
 	  mSpeler(std::make_unique<Speler>("", 100, 50, false)), // Initialize Speler with default values
 	  mGebruikersInterface(std::make_unique<GebruikersInterface>()),
 	  mSpelerActieHandler(std::make_unique<SpelerActieHandler>(mSpelwereld, mSpeler, mGebruikersInterface))
@@ -288,7 +289,7 @@ void Game::deathMenu()
 void Game::laadKerkerVanXML(const std::string& xmlBestand, const std::string& databaseBestand)
 {
 	XMLParser parser;
-	parser.parseFile(xmlBestand.c_str(), *mSpelwereld, databaseBestand.c_str());
+	parser.parseFile(xmlBestand.c_str(), *mSpelwereld->getSpelwereld(), databaseBestand.c_str());
 }
 
 void Game::genereerRandomKerker() { std::cout << "Random dungeon generated!" << std::endl; }
@@ -297,11 +298,10 @@ void Game::initSpeler(const std::string& naam, const std::string& dbPath)
 {
 	mSpeler->clear();
 	mSpeler->setNaam(naam);
-	WapenObject* wapenPtr = mSpelwereld->getStartWapen(dbPath.c_str());
+	auto wapenPtr = mSpelwereld->getStartWapen(dbPath.c_str());
 	if (wapenPtr)
 	{
-		std::unique_ptr<WapenObject> uniqueDolk(wapenPtr);
-		mSpeler->draagWapen(std::move(uniqueDolk));
+		mSpeler->draagWapen(std::move(wapenPtr));
 		std::cout << "Wapen 'dolk' is ingesteld voor de speler." << std::endl;
 	}
 	else

@@ -3,7 +3,7 @@
 
 #include <string>
 #include <memory>
-#include "Spelwereld.h"
+#include "SpelwereldFacade.h"
 #include "Speler.h"
 #include "GebruikersInterface.h"
 #include <limits>
@@ -15,7 +15,7 @@
 
 class SpelerActieHandler {
 public:
-    SpelerActieHandler(std::unique_ptr<Spelwereld>& aSpelwereld, std::unique_ptr<Speler>& aSpeler, std::unique_ptr<GebruikersInterface>& aGebruikersInterface);
+    SpelerActieHandler(std::unique_ptr<SpelwereldFacade>& aSpelwereld, std::unique_ptr<Speler>& aSpeler, std::unique_ptr<GebruikersInterface>& aGebruikersInterface);
     ~SpelerActieHandler();
 
     void verwerkActie(const std::string& aActie);
@@ -37,7 +37,7 @@ public:
     void quit();
 
 private:
-    Spelwereld& mSpelwereld;
+    SpelwereldFacade& mSpelwereld;
     Speler& mSpeler;
     GebruikersInterface& mGebruikersInterface;
     
