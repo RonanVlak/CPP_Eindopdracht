@@ -177,3 +177,19 @@ void DatabaseLoader::voegLeaderboardToe(const char* databaseBestand, const char*
         std::cerr << "Error in voegLeaderboardToe: " << e.what() << std::endl;
     }
 }
+
+void DatabaseLoader::printLeaderboard(const char* databaseBestand) {
+    try {
+        SQLiteDB db(databaseBestand);
+        const char* sql = "SELECT naam, goudstukken FROM Leaderboard ORDER BY goudstukken DESC";
+        SQLiteStmt stmt(db.get(), sql);
+
+        while (sqlite3_step(stmt.get()) == SQLITE_ROW) {
+            const char* naam = reinterpret_cast<const char*>(sqlite3_column_text(stmt.get(), 0));
+            int goudstukken = sqlite3_column_int(stmt.get(), 1);
+            std::cout << naam << " - " << goudstukken << " goudstukken" << std::endl;
+        }
+    } catch (const std::exception& e) {
+        std::cerr << "Error in printLeaderboard: " << e.what() << std::endl;
+    }
+}

@@ -68,7 +68,7 @@ void Speler::draagWapenrusting(std::unique_ptr<WapenrustingObject> wapenrusting)
 	mWapenrusting = std::move(wapenrusting);
 }
 
-void Speler::voegLevenspuntenToe(ConsumeerbaarObject* obj)
+void Speler::voegLevenspuntenToe(std::unique_ptr<ConsumeerbaarObject> obj)
 {
 	int levenspunten = 0;
 	int currentLevenspunten = 0;

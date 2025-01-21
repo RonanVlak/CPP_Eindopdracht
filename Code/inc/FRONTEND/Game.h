@@ -42,6 +42,7 @@ private:
 	void gameMenu();
 	void gameplay();
 	void deathMenu();
+	void printLeaderboard(const std::string& dbPath);
 
 	bool mRandomDungeon;
 	bool mXMLDungeon;

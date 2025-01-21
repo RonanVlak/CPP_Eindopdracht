@@ -10,7 +10,7 @@ namespace fs = std::filesystem;
 
 Game::Game()
 	: mCurrentState(State::MainMenu), mSpelwereld(std::make_unique<Spelwereld>()),
-	  mSpeler(std::make_unique<Speler>("", 10, 50, false)), // Initialize Speler with default values
+	  mSpeler(std::make_unique<Speler>("", 100, 50, false)), // Initialize Speler with default values
 	  mGebruikersInterface(std::make_unique<GebruikersInterface>()),
 	  mSpelerActieHandler(std::make_unique<SpelerActieHandler>(mSpelwereld, mSpeler, mGebruikersInterface))
 {
@@ -43,6 +43,7 @@ void Game::start()
 	}
 
 	initSpeler(mPlayerName, mDbPath);
+	printLeaderboard(mDbPath);
 	while (mCurrentState != State::Quit)
 	{
 		switch (mCurrentState)
@@ -232,6 +233,7 @@ void Game::gameplay()
 void Game::deathMenu()
 {
 	initSpeler(mPlayerName, mDbPath);
+	printLeaderboard(mDbPath);;
 
 	while (true)
 	{
@@ -317,4 +319,11 @@ void Game::listFilesInDirectory(const std::string& directory)
 			std::cout << entry.path().filename().string() << std::endl;
 		}
 	}
+}
+
+void Game::printLeaderboard(const std::string& dbPath)
+{
+	DatabaseLoader dbLoader;
+	std::cout << "Leaderboard:" << std::endl;
+	dbLoader.printLeaderboard(dbPath.c_str());
 }

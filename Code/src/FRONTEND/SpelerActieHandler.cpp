@@ -448,7 +448,7 @@ void SpelerActieHandler::consumeer(const std::string& aObjectnaam)
 		{
 			if (aObjectnaam.find("levenselixer") != std::string::npos)
 			{
-				mSpeler.voegLevenspuntenToe(it->get());
+				mSpeler.voegLevenspuntenToe(std::move(*it));
 				std::cout << "Je hebt " << aObjectnaam << " geconsumeerd." << std::endl;
 			}
 			else if (aObjectnaam.find("ervaringsdrank") != std::string::npos)
