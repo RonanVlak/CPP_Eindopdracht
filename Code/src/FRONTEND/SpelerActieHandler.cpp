@@ -412,8 +412,10 @@ void SpelerActieHandler::draagWapenrusting(const std::string& aWapenrustingnaam)
 	{
 		if (strcmp(mSpeler.getWapenrustingInventaris()[i]->getNaam(), aWapenrustingnaam.c_str()) == 0)
 		{
+			auto huidigWapen = std::move(mSpeler.getHuidigWapen());
 			mSpeler.draagWapenrusting(std::move(mSpeler.getWapenrustingInventaris()[i]));
 			mSpeler.getWapenrustingInventaris().erase(mSpeler.getWapenrustingInventaris().begin() + i);
+			mSpeler.voegObjectToe(std::move(huidigWapen));
 			std::cout << "Je draagt nu " << aWapenrustingnaam << "." << std::endl;
 			return;
 		}
@@ -446,24 +448,8 @@ void SpelerActieHandler::consumeer(const std::string& aObjectnaam)
 		{
 			if (aObjectnaam.find("levenselixer") != std::string::npos)
 			{
-				int levenspunten = 0;
-				int currentLevenspunten = mSpeler.getLevenspunten();
-				if (it->get()->getEffect() != 0)
-				{
-					levenspunten = it->get()->getEffect();
-				}
-				else
-				{
-					std::random_device rd;
-					std::mt19937 gen(rd());
-					std::uniform_int_distribution<> dis(5, 15);
-					levenspunten = dis(gen);
-				}
-				currentLevenspunten = mSpeler.getLevenspunten();
-				levenspunten = std::min(currentLevenspunten + levenspunten, 100);
-				mSpeler.setLevenspunten(levenspunten);
+				mSpeler.voegLevenspuntenToe(it->get());
 				std::cout << "Je hebt " << aObjectnaam << " geconsumeerd." << std::endl;
-				std::cout << "Je hebt " << levenspunten << " levenspunten erbij gekregen." << std::endl;
 			}
 			else if (aObjectnaam.find("ervaringsdrank") != std::string::npos)
 			{
@@ -486,8 +472,6 @@ void SpelerActieHandler::consumeer(const std::string& aObjectnaam)
 				std::cout << "Je bent geteleporteerd naar een nieuwe locatie." << std::endl;
 				mGebruikersInterface.toonLocatie(mSpelwereld.getCurrentLocatie());
 			}
-
-			mSpeler.consumeerObject(it->get());
 			mSpeler.getConsumeerbareObjecten().erase(it);
 			return;
 		}

@@ -25,7 +25,7 @@ public:
 	void draagWapenrusting(std::unique_ptr<WapenrustingObject> wapenrusting);
 	void draagWapen(std::unique_ptr<WapenObject> wapen);
 	void verwijderWapen(const std::string& naam);
-	void consumeerObject(ConsumeerbaarObject* obj);
+	void voegLevenspuntenToe(ConsumeerbaarObject* obj);
 	void toonGegevens() const;
 	void voegGoudstukkenToe(int aantal);
 	void voegObjectToe(std::unique_ptr<Spelobject> obj);

@@ -28,7 +28,7 @@ class SQLiteStmt {
 public:
     SQLiteStmt(sqlite3* db, const char* sql) {
         if (sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr) != SQLITE_OK) {
-            throw std::runtime_error("Failed to prepare statement");
+            throw std::runtime_error(std::string("Failed to prepare statement: ") + sqlite3_errmsg(db));
         }
     }
 
@@ -155,4 +155,25 @@ CustomVector<Spelobject*> DatabaseLoader::laadSpelobjecten(const char* databaseB
     }
 
     return spelobjectenVector;
+}
+
+void DatabaseLoader::voegLeaderboardToe(const char* databaseBestand, const char* naam, int goudstukken) {
+    try {
+        SQLiteDB db(databaseBestand);
+        const char* sql = "INSERT INTO Leaderboard (naam, goudstukken) VALUES (?, ?)";
+        SQLiteStmt stmt(db.get(), sql);
+
+        if (stmt.get() == nullptr) {
+            throw std::runtime_error(std::string("Failed to prepare statement: ") + sqlite3_errmsg(db.get()));
+        }
+
+        sqlite3_bind_text(stmt.get(), 1, naam, -1, SQLITE_STATIC);
+        sqlite3_bind_int(stmt.get(), 2, goudstukken);
+
+        if (sqlite3_step(stmt.get()) != SQLITE_DONE) {
+            throw std::runtime_error("Failed to insert into Leaderboard");
+        }
+    } catch (const std::exception& e) {
+        std::cerr << "Error in voegLeaderboardToe: " << e.what() << std::endl;
+    }
 }

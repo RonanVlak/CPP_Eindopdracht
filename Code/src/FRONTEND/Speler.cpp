@@ -68,14 +68,35 @@ void Speler::draagWapenrusting(std::unique_ptr<WapenrustingObject> wapenrusting)
 	mWapenrusting = std::move(wapenrusting);
 }
 
-void Speler::consumeerObject(ConsumeerbaarObject* obj)
+void Speler::voegLevenspuntenToe(ConsumeerbaarObject* obj)
 {
-	int effect = obj->getEffect();
-	mLevenspunten += effect;
+	int levenspunten = 0;
+	int currentLevenspunten = 0;
+	if (obj->getEffect() != 0)
+	{
+		levenspunten = obj->getEffect();
+	}
+	else
+	{
+		std::random_device rd;
+		std::mt19937 gen(rd());
+		std::uniform_int_distribution<> dis(5, 15);
+		levenspunten = dis(gen);
+	}
+	currentLevenspunten = mLevenspunten;
+	levenspunten = std::min(currentLevenspunten + levenspunten, 100);
+	mLevenspunten = levenspunten;
+	int overigeLevenspunten = 0;
 	if (mLevenspunten > 100)
 	{ // Assuming 100 is the maximum health
+		overigeLevenspunten = mLevenspunten - 100;
+		std::cout << "Je hebt " << overigeLevenspunten << " levenspunten erbij gekregen." << std::endl;
+
 		mLevenspunten = 100;
+
+		return;
 	}
+	std::cout << "Je hebt " << levenspunten << " levenspunten erbij gekregen." << std::endl;
 }
 
 void Speler::toonGegevens() const

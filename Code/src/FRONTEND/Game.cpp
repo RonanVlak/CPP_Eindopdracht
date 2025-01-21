@@ -10,7 +10,7 @@ namespace fs = std::filesystem;
 
 Game::Game()
 	: mCurrentState(State::MainMenu), mSpelwereld(std::make_unique<Spelwereld>()),
-	  mSpeler(std::make_unique<Speler>("", 100, 50, false)), // Initialize Speler with default values
+	  mSpeler(std::make_unique<Speler>("", 10, 50, false)), // Initialize Speler with default values
 	  mGebruikersInterface(std::make_unique<GebruikersInterface>()),
 	  mSpelerActieHandler(std::make_unique<SpelerActieHandler>(mSpelwereld, mSpeler, mGebruikersInterface))
 {
@@ -27,7 +27,7 @@ void Game::start()
 	FSConverter fsConverter;
 	std::string resourcesDirectory = fsConverter.getResourcePath("");
 	std::string dbFileName = "kerkersendraken.db";
-	std::string dbPath = fsConverter.getResourcePath(dbFileName);
+	mDbPath = fsConverter.getResourcePath(dbFileName);
 
 	std::system("clear");
 
@@ -42,7 +42,7 @@ void Game::start()
 		}
 	}
 
-	initSpeler(mPlayerName, dbPath);
+	initSpeler(mPlayerName, mDbPath);
 	while (mCurrentState != State::Quit)
 	{
 		switch (mCurrentState)
@@ -55,6 +55,9 @@ void Game::start()
 			break;
 		case State::Gameplay:
 			gameplay();
+			break;
+		case State::DeathMenu:
+			deathMenu();
 			break;
 		case State::Quit:
 			break;
@@ -154,8 +157,8 @@ void Game::gameMenu()
 			else
 			{
 				laadKerkerVanXML(filePath, dbPath);
-				mXMLDungeon = true;					 // Set XML dungeon flag to true
-				mRandomDungeon = false;					 // Set random dungeon flag to false
+				mXMLDungeon = true;				 // Set XML dungeon flag to true
+				mRandomDungeon = false;			 // Set random dungeon flag to false
 				mCurrentState = State::Gameplay; // Set the state to gameplay
 				return;							 // Exit the menu function to proceed to gameplay
 			}
@@ -210,7 +213,10 @@ void Game::gameplay()
 				if (mSpeler->getLevenspunten() <= 0)
 				{
 					std::cout << "Je bent verslagen!" << std::endl;
-					mCurrentState = State::GameMenu;
+					DatabaseLoader dbLoader;
+					dbLoader.voegLeaderboardToe(mDbPath.c_str(), mSpeler->getNaam().c_str(),
+												mSpeler->getGoudstukken());
+					mCurrentState = State::DeathMenu;
 				}
 				else
 				{
@@ -218,19 +224,21 @@ void Game::gameplay()
 				}
 			}
 		}
+		std::cout << std::endl;
 	}
 	mGebruikersInterface->toonEindeSpel();
 }
 
 void Game::deathMenu()
 {
+	initSpeler(mPlayerName, mDbPath);
+
 	while (true)
 	{
 		std::cout << "Wat wil je doen?" << std::endl;
 		std::cout << "1. Opnieuw spelen" << std::endl;
 		std::cout << "2. Terug naar Main Menu" << std::endl;
 
-		initSpeler(mPlayerName, mDbPath);
 		int choice;
 		std::cin >> choice;
 
@@ -265,7 +273,6 @@ void Game::deathMenu()
 		}
 	}
 }
-
 
 void Game::laadKerkerVanXML(const std::string& xmlBestand, const std::string& databaseBestand)
 {
