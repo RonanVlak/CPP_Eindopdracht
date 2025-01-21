@@ -234,7 +234,7 @@ void Game::deathMenu()
 {
 	initSpeler(mPlayerName, mDbPath);
 	printLeaderboard(mDbPath);;
-
+	mSpelwereld->clear();
 	while (true)
 	{
 		std::cout << "Wat wil je doen?" << std::endl;
