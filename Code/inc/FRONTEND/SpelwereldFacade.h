@@ -27,7 +27,7 @@ public:
     std::unique_ptr<WapenObject> getStartWapen(const std::string& databasePath);
     
     // Location management
-    Locatie* getCurrentLocatie() const; // Returns raw pointer as location ownership stays with Spelwereld
+    Locatie* getCurrentLocatie() const;
     void setCurrentLocatie(Locatie* locatie);
     Locatie* getLocatie(const std::string& naam);
     Locatie* getLocatieById(int id) const;

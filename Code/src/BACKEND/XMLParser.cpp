@@ -1,6 +1,7 @@
 #include "XMLParser.h"
 #include "LocatieFactory.h"
 #include <iostream>
+#include <stdexcept>
 
 XMLParser::XMLParser() {}
 
@@ -9,13 +10,13 @@ XMLParser::~XMLParser() {}
 bool XMLParser::parseFile(const char* filename, Spelwereld& spelwereld, const char* databaseBestand) {
     tinyxml2::XMLDocument doc;
     if (doc.LoadFile(filename) != tinyxml2::XML_SUCCESS) {
-        std::cerr << "Could not open file" << std::endl;
+        throw std::runtime_error("Could not open file");
         return false;
     }
 
     tinyxml2::XMLElement* root = doc.RootElement();
     if (!root) {
-        std::cerr << "Invalid XML format" << std::endl;
+        throw std::runtime_error("Invalid XML format");
         return false;
     }
 

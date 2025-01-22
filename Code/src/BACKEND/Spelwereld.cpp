@@ -2,7 +2,6 @@
 #include "DatabaseLoader.h"
 #include "RandomEngine.h"
 #include "WapenObject.h"
-#include <algorithm>
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
@@ -153,6 +152,17 @@ void Spelwereld::verplaatsVijanden()
 	}
 }
 
+void Spelwereld::shuffle(CustomVector<Locatie*>& locaties)
+{
+	std::mt19937& gen = RandomEngine::getInstance();
+	for (int i = locaties.size() - 1; i > 0; --i)
+	{
+		int randomIndex = RandomEngine::getRandomInt(0, locaties.size() - 1);
+		int j = RandomEngine::getRandomInt(0, i);
+		std::swap(locaties[i], locaties[j]);
+	}
+}
+
 CustomVector<Locatie*> Spelwereld::getAdjacentLocations(Locatie* locatie)
 {
 	CustomVector<Locatie*> adjacentLocations;
@@ -195,7 +205,7 @@ void Spelwereld::generateRandomKerker(const char* databaseBestand)
 	// Randomly select a subset of locations
 	std::mt19937& gen = RandomEngine::getInstance();
 	int locatiesSize = locaties.size();
-	std::shuffle(locaties.begin(), locaties.end(), gen);
+	shuffle(locaties);
 
 	// Calculate the number of enemies required
 	int numEnemiesRequired = std::ceil(static_cast<float>(locatiesSize) / 3.0f);

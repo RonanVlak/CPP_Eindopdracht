@@ -32,6 +32,7 @@ public:
 	void clear();
 
 private:
+	void shuffle(CustomVector<Locatie*>& locaties);
 	void copyFrom(const Spelwereld& other);
 	void moveFrom(Spelwereld&& other) noexcept;
 
