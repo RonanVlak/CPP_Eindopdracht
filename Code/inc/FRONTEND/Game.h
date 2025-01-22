@@ -22,7 +22,6 @@ public:
 
 	void start();
 	void laadKerkerVanXML(const std::string& xmlBestand, const std::string& databaseBestand);
-	void genereerRandomKerker();
 	void initSpeler(const std::string& naam, const std::string& dbPath);
 	void verwerkActie(const std::string& actie);
 	void genereerRandomKerker(const std::string& databaseBestand);
