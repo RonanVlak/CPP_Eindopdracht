@@ -1,5 +1,6 @@
 #include "Speler.h"
 #include "GoudstukkenObject.h"
+#include "Logger.h"
 #include "RandomEngine.h"
 #include "Vijand.h"
 #include <iostream>
@@ -87,60 +88,62 @@ void Speler::voegLevenspuntenToe(std::unique_ptr<ConsumeerbaarObject> obj)
 	if (newLevenspunten > 100)
 	{
 		int gainedLevenspunten = 100 - currentLevenspunten;
-		std::cout << "Je hebt " << gainedLevenspunten << " levenspunten erbij gekregen." << std::endl;
+		Logger::getInstance().logOutput(
+			"Je hebt " + std::to_string(gainedLevenspunten) + " levenspunten erbij gekregen.\n");
 		mLevenspunten = 100;
 	}
 	else
 	{
-		std::cout << "Je hebt " << levenspunten << " levenspunten erbij gekregen." << std::endl;
+		Logger::getInstance().logOutput("Je hebt " + std::to_string(levenspunten) + " levenspunten erbij gekregen.\n");
 		mLevenspunten = newLevenspunten;
 	}
 }
 
 void Speler::toonGegevens() const
 {
-	std::cout << "Naam: " << mNaam << "\nLevenspunten: " << mLevenspunten << "\nAanvalskans: " << mAanvalskans
-			  << "\nGoudstukken: " << mGoudstukken << std::endl;
+	Logger::getInstance().logOutput("Naam: " + mNaam + "\nLevenspunten: " + std::to_string(mLevenspunten) +
+									"\nAanvalskans: " + std::to_string(mAanvalskans) +
+									"\nGoudstukken: " + std::to_string(mGoudstukken) + "\n");
 	if (mWapen)
 	{
-		std::cout << "Huidig wapen: " << mWapen->getNaam() << std::endl;
+		Logger::getInstance().logOutput("Huidig wapen: " + std::string(mWapen->getNaam()) + "\n");
 	}
 	if (mWapenrusting)
 	{
-		std::cout << "Huidige wapenrusting: " << mWapenrusting->getNaam() << std::endl;
+		Logger::getInstance().logOutput("Huidige wapenrusting: " + std::string(mWapenrusting->getNaam()) + "\n");
 	}
 	if (!mConsumeerbareObjecten.empty())
 	{
-		std::cout << "Consumeerbare objecten: " << std::endl;
+		Logger::getInstance().logOutput("Consumeerbare objecten: \n");
 		for (const auto& obj : mConsumeerbareObjecten)
 		{
-			std::cout << obj->getNaam() << std::endl;
+			Logger::getInstance().logOutput(std::string(obj->getNaam()) + "\n");
 		}
 	}
 
 	if (mWapenInventaris.empty())
 	{
-		std::cout << "Wapen inventaris is leeg." << std::endl;
+		Logger::getInstance().logOutput("Wapen inventaris is leeg.\n");
 	}
 	else
 	{
-		std::cout << "Wapen inventaris: " << std::endl;
+		Logger::getInstance().logOutput("Wapen inventaris: \n");
 		for (const auto& obj : mWapenInventaris)
 		{
-			std::cout << obj->getNaam() << std::endl;
+			Logger::getInstance().logOutput(std::string(obj->getNaam()) + "\n");
 		}
 	}
 
 	if (mWapenrustingInventaris.empty())
 	{
-		std::cout << "Wapenrusting inventaris is leeg." << std::endl;
+		Logger::getInstance().logOutput("Wapenrusting inventaris is leeg.\n");
 	}
 	else
 	{
-		std::cout << "Wapenrusting inventaris: " << std::endl;
+		Logger::getInstance().logOutput("Wapenrusting inventaris: \n");
 		for (const auto& obj : mWapenrustingInventaris)
 		{
-			std::cout << obj->getNaam() << std::endl;
+			Logger::getInstance().logOutput(std::string(obj->getNaam()) + "\n");
 		}
 	}
 }
@@ -171,7 +174,7 @@ void Speler::voegObjectToe(Spelobject* obj)
 	else
 	{
 		delete obj; // Properly delete the object
-		std::cout << "Onbekend object: " << objectNaam << std::endl;
+		Logger::getInstance().logOutput("Onbekend object: " + objectNaam + "\n");
 	}
 }
 
@@ -193,22 +196,23 @@ void Speler::sla(Vijand* vijand)
 				schade = RandomEngine::getRandomInt(1, 2);
 			}
 			vijand->ontvangSchade(schade);
-			std::cout << "Je hebt " << vijand->getNaam() << " aangevallen en " << schade << " schade toegebracht."
-					  << std::endl;
+			Logger::getInstance().logOutput("Je hebt " + std::string(vijand->getNaam()) + " aangevallen en " +
+											std::to_string(schade) + " schade toegebracht.\n");
 			if (vijand->isVerslagen())
 			{
 				return;
 			}
 			else
 			{
-				std::cout << vijand->getNaam() << " heeft nog " << vijand->getLevenspunten() << " levenspunten over."
-						  << std::endl;
+				Logger::getInstance().logOutput(std::string(vijand->getNaam()) + " heeft nog " +
+												std::to_string(vijand->getLevenspunten()) + " levenspunten over.\n");
 				return;
 			}
 		}
 		else
 		{
-			std::cout << "Je hebt " << vijand->getNaam() << " aangevallen, maar je miste." << std::endl;
+			Logger::getInstance().logOutput(
+				"Je hebt " + std::string(vijand->getNaam()) + " aangevallen, maar je miste.\n");
 		}
 	}
 }
@@ -307,6 +311,7 @@ void Speler::moveFrom(Speler&& other) noexcept
 
 void Speler::clear()
 {
+	mNaam = "";
 	mWapen.reset();
 	mWapenrusting.reset();
 	for (auto& obj : mConsumeerbareObjecten)

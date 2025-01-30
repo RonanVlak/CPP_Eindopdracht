@@ -21,7 +21,7 @@ public:
 
     void push_back(const T& value);
     void pop_back();
-    void erase(std::size_t index); // New erase function
+    void erase(std::size_t index);
     void resize(std::size_t newCapacity);
 
     T& operator[](std::size_t index);

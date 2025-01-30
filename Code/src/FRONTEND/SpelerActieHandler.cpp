@@ -1,6 +1,8 @@
 #include "SpelerActieHandler.h"
-#include "SpelwereldFacade.h"
+#include "Logger.h"
 #include "RandomEngine.h"
+#include "SpelwereldFacade.h"
+#include <algorithm>
 #include <iostream>
 
 SpelerActieHandler::SpelerActieHandler(std::unique_ptr<SpelwereldFacade>& aSpelwereld, std::unique_ptr<Speler>& aSpeler,
@@ -8,7 +10,6 @@ SpelerActieHandler::SpelerActieHandler(std::unique_ptr<SpelwereldFacade>& aSpelw
 	: mSpelwereld(*aSpelwereld), mSpeler(*aSpeler), mGebruikersInterface(*aGebruikersInterface)
 {
 }
-
 
 SpelerActieHandler::Actie SpelerActieHandler::stringNaarActie(const std::string& aActie)
 {
@@ -57,41 +58,46 @@ void SpelerActieHandler::verwerkActie(const std::string& aActie)
 	case Actie::GaNaar:
 	{
 		std::string richting;
-		std::cout << "Voer richting in: ";
+		Logger::getInstance().logOutput("Voer richting in: ");
 		std::cin >> richting;
 		std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+		Logger::getInstance().logInput("\n" + richting);
 		gaNaar(richting);
 		break;
 	}
 	case Actie::Pak:
 	{
 		std::string objectnaam;
-		std::cout << "Voer object in: ";
+		Logger::getInstance().logOutput("Voer object in: ");
 		std::getline(std::cin, objectnaam);
+		Logger::getInstance().logInput("\n" + objectnaam);
 		pak(objectnaam);
 		break;
 	}
 	case Actie::LegNeer:
 	{
 		std::string objectnaam;
-		std::cout << "Voer object in: ";
+		Logger::getInstance().logOutput("Voer object in: ");
 		std::getline(std::cin, objectnaam);
+		Logger::getInstance().logInput("\n" + objectnaam);
 		legNeer(objectnaam);
 		break;
 	}
 	case Actie::BekijkObject:
 	{
 		std::string objectnaam;
-		std::cout << "Voer object in: ";
+		Logger::getInstance().logOutput("Voer object in: ");
 		std::getline(std::cin, objectnaam);
+		Logger::getInstance().logInput("\n" + objectnaam);
 		bekijkObject(objectnaam);
 		break;
 	}
 	case Actie::BekijkVijand:
 	{
 		std::string vijandnaam;
-		std::cout << "Voer naam vijand in: ";
+		Logger::getInstance().logOutput("Voer naam vijand in: ");
 		std::getline(std::cin, vijandnaam);
+		Logger::getInstance().logInput("\n" + vijandnaam);
 		bekijkVijand(vijandnaam);
 		break;
 	}
@@ -101,24 +107,27 @@ void SpelerActieHandler::verwerkActie(const std::string& aActie)
 	case Actie::Sla:
 	{
 		std::string vijandnaam;
-		std::cout << "Voer naam vijand in: ";
+		Logger::getInstance().logOutput("Voer naam vijand in: ");
 		std::getline(std::cin, vijandnaam);
+		Logger::getInstance().logInput("\n" + vijandnaam);
 		sla(vijandnaam);
 		break;
 	}
 	case Actie::DraagWapenrusting:
 	{
 		std::string wapenrustingnaam;
-		std::cout << "Voer wapenrusting naam in: ";
+		Logger::getInstance().logOutput("Voer wapenrusting naam in: ");
 		std::getline(std::cin, wapenrustingnaam);
+		Logger::getInstance().logInput("\n" + wapenrustingnaam);
 		draagWapenrusting(wapenrustingnaam);
 		break;
 	}
 	case Actie::DraagWapen:
 	{
 		std::string wapennaam;
-		std::cout << "Voer wapen naam in: ";
+		Logger::getInstance().logOutput("Voer wapen naam in: ");
 		std::getline(std::cin, wapennaam);
+		Logger::getInstance().logInput("\n" + wapennaam);
 		draagWapen(wapennaam);
 		break;
 	}
@@ -128,8 +137,9 @@ void SpelerActieHandler::verwerkActie(const std::string& aActie)
 	case Actie::Consumeer:
 	{
 		std::string objectnaam;
-		std::cout << "Voer objectnaam in: ";
+		Logger::getInstance().logOutput("Voer object in: ");
 		std::getline(std::cin, objectnaam);
+		Logger::getInstance().logInput("\n" + objectnaam);
 		consumeer(objectnaam);
 		break;
 	}
@@ -137,7 +147,7 @@ void SpelerActieHandler::verwerkActie(const std::string& aActie)
 		godMode();
 		break;
 	default:
-		std::cout << "Onbekende actie: " << aActie << std::endl;
+		Logger::getInstance().logOutput("Onbekende actie: " + aActie + "\n");
 		break;
 	}
 }
@@ -146,33 +156,34 @@ void SpelerActieHandler::kijk()
 {
 	if (mSpelwereld.getCurrentLocatie())
 	{
-		std::cout << "Locatie: " << mSpelwereld.getCurrentLocatie()->getNaam() << std::endl;
-		std::cout << "Beschrijving: " << mSpelwereld.getCurrentLocatie()->getAlgemeneOmschrijving() << std::endl;
+		Logger::getInstance().logOutput("Locatie: " + std::string(mSpelwereld.getCurrentLocatie()->getNaam()) + "\n");
+		Logger::getInstance().logOutput(
+			"Beschrijving: " + std::string(mSpelwereld.getCurrentLocatie()->getAlgemeneOmschrijving()) + "\n");
 
-		std::cout << "Zichtbare objecten: " << std::endl;
+		Logger::getInstance().logOutput("Zichtbare objecten: \n");
 		mSpelwereld.getCurrentLocatie()->printZichtbareObjecten();
 
-		std::cout << "Vijanden: " << std::endl;
+		Logger::getInstance().logOutput("Vijanden: \n");
 		int vijandenCount = mSpelwereld.getCurrentLocatie()->getVijandenCount();
 		for (int i = 0; i < vijandenCount; ++i)
 		{
 			Vijand* vijand = mSpelwereld.getCurrentLocatie()->getVijand(i);
 			if (vijand != nullptr)
 			{
-				std::cout << "  - " << vijand->getNaam() << std::endl;
+				Logger::getInstance().logOutput("  - " + std::string(vijand->getNaam()) + "\n");
 			}
 		}
 		if (vijandenCount == 0)
 		{
-			std::cout << "  Geen vijanden" << std::endl;
+			Logger::getInstance().logOutput("  Geen vijanden\n");
 		}
 
-		std::cout << "Uitgangen:" << std::endl;
+		Logger::getInstance().logOutput("Uitgangen:\n");
 		mSpelwereld.getCurrentLocatie()->listExits();
 	}
 	else
 	{
-		std::cout << "Je bent niet in een valide locatie" << std::endl;
+		Logger::getInstance().logOutput("Je bent niet in een valide locatie\n");
 	}
 }
 
@@ -191,7 +202,7 @@ void SpelerActieHandler::zoek()
 
 		if (hiddenObjectsToMove.empty())
 		{
-			std::cout << "Geen verborgen objecten gevonden." << std::endl;
+			Logger::getInstance().logOutput("Geen verborgen objecten gevonden.\n");
 			return;
 		}
 
@@ -201,11 +212,11 @@ void SpelerActieHandler::zoek()
 			mSpelwereld.getCurrentLocatie()->verplaatsVerborgenNaarZichtbaar(obj);
 		}
 
-		std::cout << "Je hebt verborgen objecten gevonden!" << std::endl;
+		Logger::getInstance().logOutput("Je hebt verborgen objecten gevonden!\n");
 	}
 	else
 	{
-		std::cout << "Je bent niet in een valide locatie." << std::endl;
+		Logger::getInstance().logOutput("Je bent niet in een valide locatie.\n");
 	}
 }
 
@@ -218,63 +229,64 @@ void SpelerActieHandler::gaNaar(const std::string& aRichting)
 		{
 			mSpelwereld.getEnemiesDamage();
 			mSpelwereld.setCurrentLocatie(mSpelwereld.getLocatieById(nextLocationId));
-			std::cout << "Je bent verplaats naar de richting  " << aRichting << "." << std::endl;
+			Logger::getInstance().logOutput("Je bent verplaats naar de richting " + aRichting + ".\n");
 			mGebruikersInterface.toonLocatie(mSpelwereld.getCurrentLocatie());
 		}
 		else
 		{
-			std::cout << "Er is geen uitgang naar de ricting  " << aRichting << "." << std::endl;
+			Logger::getInstance().logOutput("Er is geen uitgang naar de richting " + aRichting + ".\n");
 		}
 	}
 	else
 	{
-		std::cout << "Je bent niet in een valide locatie." << std::endl;
+		Logger::getInstance().logOutput("Je bent niet in een valide locatie.\n");
 	}
 }
 
 void SpelerActieHandler::pak(const std::string& aObjectnaam)
 {
-    if (mSpelwereld.getCurrentLocatie())
-    {
-        // Check if the object is in the current location
-        for (int i = 0; i < mSpelwereld.getCurrentLocatie()->getZichtbareObjectenCount(); ++i)
-        {
-            Spelobject* obj = mSpelwereld.getCurrentLocatie()->getZichtbaarObject(i);
-            if (obj && obj->getNaam() == aObjectnaam)
-            {
-                mSpeler.voegObjectToe(obj);
-                mSpelwereld.getCurrentLocatie()->verwijderZichtbaarObject(obj);
-                std::cout << "Je hebt een item opgepakt: " << aObjectnaam << "." << std::endl;
-                return;
-            }
-        }
-        // Check if the object is with a defeated enemy
-        for (int i = 0; i < mSpelwereld.getCurrentLocatie()->getVijandenCount(); ++i)
-        {
-            Vijand* vijand = mSpelwereld.getCurrentLocatie()->getVijand(i);
-            if (vijand && vijand->isVerslagen())
-            {
-                for (int j = 0; j < vijand->getAantalSpelobjecten(); ++j)
-                {
-                    Spelobject* obj = vijand->getSpelobject(j);
-                    if (obj && obj->getNaam() == aObjectnaam)
-                    {
-                        mSpeler.voegObjectToe(obj);
-                        vijand->removeSpelobject(obj);
-                        std::cout << "Je hebt een item opgepakt van " << vijand->getNaam() << ": " << aObjectnaam << "."
-                                  << std::endl;
-                        return;
-                    }
-                }
-            }
-        }
+	if (mSpelwereld.getCurrentLocatie())
+	{
+		// Check if the object is with a defeated enemy
+		for (int i = 0; i < mSpelwereld.getCurrentLocatie()->getVijandenCount(); ++i)
+		{
+			Vijand* vijand = mSpelwereld.getCurrentLocatie()->getVijand(i);
+			if (vijand && vijand->isVerslagen())
+			{
+				for (int j = 0; j < vijand->getAantalSpelobjecten(); ++j)
+				{
+					Spelobject* obj = vijand->getSpelobject(j);
+					if (obj && obj->getNaam() == aObjectnaam)
+					{
+						mSpeler.voegObjectToe(obj);
+						vijand->removeSpelobject(obj);
+						Logger::getInstance().logOutput("Je hebt een item opgepakt van " +
+														std::string(vijand->getNaam()) + ": " + aObjectnaam + ".\n");
+						return;
+					}
+				}
+			}
+		}
 
-        std::cout << "Object " << aObjectnaam << " is niet gevonden in je huidige locatie." << std::endl;
-    }
-    else
-    {
-        std::cout << "Je bent niet in een valide locatie." << std::endl;
-    }
+		// Check if the object is in the current location
+		for (int i = 0; i < mSpelwereld.getCurrentLocatie()->getZichtbareObjectenCount(); ++i)
+		{
+			Spelobject* obj = mSpelwereld.getCurrentLocatie()->getZichtbaarObject(i);
+			if (obj && obj->getNaam() == aObjectnaam)
+			{
+				mSpeler.voegObjectToe(obj);
+				mSpelwereld.getCurrentLocatie()->verwijderZichtbaarObject(obj);
+				Logger::getInstance().logOutput("Je hebt een item opgepakt: " + aObjectnaam + ".\n");
+				return;
+			}
+		}
+
+		Logger::getInstance().logOutput("Object " + aObjectnaam + " is niet gevonden in je huidige locatie.\n");
+	}
+	else
+	{
+		Logger::getInstance().logOutput("Je bent niet in een valide locatie.\n");
+	}
 }
 
 void SpelerActieHandler::legNeer(const std::string& aObjectnaam)
@@ -288,7 +300,7 @@ void SpelerActieHandler::legNeer(const std::string& aObjectnaam)
 				auto temp = std::move(mSpeler.getConsumeerbareObjecten()[i]);
 				mSpeler.getConsumeerbareObjecten().erase(mSpeler.getConsumeerbareObjecten().begin() + i);
 				mSpelwereld.getCurrentLocatie()->voegZichtbaarObjectToe(temp.release());
-				std::cout << "Je hebt een item neergelegd: " << aObjectnaam << "." << std::endl;
+				Logger::getInstance().logOutput("Je hebt een item neergelegd: " + aObjectnaam + ".\n");
 				return;
 			}
 		}
@@ -299,7 +311,7 @@ void SpelerActieHandler::legNeer(const std::string& aObjectnaam)
 				auto temp = std::move(mSpeler.getWapenInventaris()[i]);
 				mSpeler.getWapenInventaris().erase(mSpeler.getWapenInventaris().begin() + i);
 				mSpelwereld.getCurrentLocatie()->voegZichtbaarObjectToe(temp.release());
-				std::cout << "Je hebt een item neergelegd: " << aObjectnaam << "." << std::endl;
+				Logger::getInstance().logOutput("Je hebt een item neergelegd: " + aObjectnaam + ".\n");
 				return;
 			}
 		}
@@ -310,15 +322,15 @@ void SpelerActieHandler::legNeer(const std::string& aObjectnaam)
 				auto temp = std::move(mSpeler.getWapenrustingInventaris()[i]);
 				mSpeler.getWapenrustingInventaris().erase(mSpeler.getWapenrustingInventaris().begin() + i);
 				mSpelwereld.getCurrentLocatie()->voegZichtbaarObjectToe(temp.release());
-				std::cout << "Je hebt een item neergelegd: " << aObjectnaam << "." << std::endl;
+				Logger::getInstance().logOutput("Je hebt een item neergelegd: " + aObjectnaam + ".\n");
 				return;
 			}
 		}
-		std::cout << "Object " << aObjectnaam << " is niet gevonden in je inventaris." << std::endl;
+		Logger::getInstance().logOutput("Object " + aObjectnaam + " is niet gevonden in je inventaris.\n");
 	}
 	else
 	{
-		std::cout << "Je bent niet in een valide locatie." << std::endl;
+		Logger::getInstance().logOutput("Je bent niet in een valide locatie.\n");
 	}
 }
 
@@ -329,17 +341,17 @@ void SpelerActieHandler::bekijkObject(const std::string& aObjectnaam)
 		Spelobject* obj = mSpelwereld.getCurrentLocatie()->getZichtbaarObjectByName(aObjectnaam);
 		if (obj)
 		{
-			std::cout << "Object: " << obj->getNaam() << std::endl;
-			std::cout << "Beschrijving: " << obj->getBeschrijving() << std::endl;
+			Logger::getInstance().logOutput("Object: " + std::string(obj->getNaam()) + "\n");
+			Logger::getInstance().logOutput("Beschrijving: " + std::string(obj->getBeschrijving()) + "\n");
 		}
 		else
 		{
-			std::cout << "Object " << aObjectnaam << " is niet gevonden in je huidige locatie." << std::endl;
+			Logger::getInstance().logOutput("Object " + aObjectnaam + " is niet gevonden in je huidige locatie.\n");
 		}
 	}
 	else
 	{
-		std::cout << "Je bent niet in een valide locatie." << std::endl;
+		Logger::getInstance().logOutput("Je bent niet in een valide locatie.\n");
 	}
 }
 
@@ -355,26 +367,32 @@ void SpelerActieHandler::bekijkVijand(const std::string& aVijandnaam)
 			{
 				if (vijand->getAantalSpelobjecten() <= 0)
 				{
-					std::cout << "Vijand heeft geen objecten." << std::endl;
+					Logger::getInstance().logOutput("Vijand heeft geen objecten.\n");
 				}
 				else
 				{
-					std::cout << "Objecten van " << vijand->getNaam() << ":" << std::endl;
+					Logger::getInstance().logOutput("Objecten van " + std::string(vijand->getNaam()) + ":\n");
 					for (int i = 0; i < vijand->getAantalSpelobjecten(); i++)
 					{
-						mSpelwereld.getCurrentLocatie()->voegZichtbaarObjectToe(vijand->getSpelobject(i));
+						Logger::getInstance().logOutput(
+							"  - " + std::string(vijand->getSpelobject(i)->getNaam()) + "\n");
 					}
+					// for (int i = 0; i < vijand->getAantalSpelobjecten(); i++)
+					// {
+					// 	mSpelwereld.getCurrentLocatie()->voegZichtbaarObjectToe(vijand->getSpelobject(i));
+					// 	vijand->removeSpelobject(vijand->getSpelobject(i));
+					// }
 				}
 			}
 		}
 		else
 		{
-			std::cout << "Vijand " << aVijandnaam << " is niet gevonden in je huidige locatie." << std::endl;
+			Logger::getInstance().logOutput("Vijand " + aVijandnaam + " is niet gevonden in je huidige locatie.\n");
 		}
 	}
 	else
 	{
-		std::cout << "Je bent niet in een valide locatie." << std::endl;
+		Logger::getInstance().logOutput("Je bent niet in een valide locatie.\n");
 	}
 }
 
@@ -390,87 +408,99 @@ void SpelerActieHandler::sla(const std::string& aVijandnaam)
 			mSpeler.sla(vijand);
 			if (vijand->isVerslagen())
 			{
-				std::cout << vijand->getNaam() << " is verslagen!" << std::endl;
+				Logger::getInstance().logOutput(std::string(vijand->getNaam()) + " is verslagen!\n");
 			}
 		}
 		else
 		{
-			std::cout << "Vijand " << aVijandnaam << " is niet gevonden in je huidige locatie." << std::endl;
+			Logger::getInstance().logOutput("Vijand " + aVijandnaam + " is niet gevonden in je huidige locatie.\n");
 		}
 	}
 	else
 	{
-		std::cout << "Je bent niet in een valide locatie." << std::endl;
+		Logger::getInstance().logOutput("Je bent niet in een valide locatie.\n");
 	}
 }
 
 void SpelerActieHandler::draagWapenrusting(const std::string& aWapenrustingnaam)
 {
-	for (int i = 0; i < mSpeler.getWapenrustingInventaris().size(); ++i)
-	{
-		if (strcmp(mSpeler.getWapenrustingInventaris()[i]->getNaam(), aWapenrustingnaam.c_str()) == 0)
-		{
-			auto huidigWapen = std::move(mSpeler.getHuidigWapen());
-			mSpeler.draagWapenrusting(std::move(mSpeler.getWapenrustingInventaris()[i]));
-			mSpeler.getWapenrustingInventaris().erase(mSpeler.getWapenrustingInventaris().begin() + i);
-			mSpeler.voegObjectToe(huidigWapen.release());
-			std::cout << "Je draagt nu " << aWapenrustingnaam << "." << std::endl;
-			return;
-		}
-	}
-	std::cout << "Wapenrusting " << aWapenrustingnaam << " is niet gevonden in je inventaris." << std::endl;
-}
+    auto it = std::find_if(mSpeler.getWapenrustingInventaris().begin(), mSpeler.getWapenrustingInventaris().end(),
+                           [&aWapenrustingnaam](const std::unique_ptr<WapenrustingObject>& obj)
+                           { return strcmp(obj->getNaam(), aWapenrustingnaam.c_str()) == 0; });
 
+    if (it != mSpeler.getWapenrustingInventaris().end())
+    {
+        if (mSpeler.getHuidigWapenrusting())
+        {
+			mSpeler.voegObjectToe(mSpeler.getHuidigWapenrusting().release());
+        }
+
+        mSpeler.draagWapenrusting(std::move(*it));
+        mSpeler.getWapenrustingInventaris().erase(it);
+
+        Logger::getInstance().logOutput("Je draagt nu " + aWapenrustingnaam + ".\n");
+    }
+    else
+    {
+        Logger::getInstance().logOutput("Wapenrusting " + aWapenrustingnaam + " is niet gevonden in je inventaris.\n");
+    }
+}
 void SpelerActieHandler::draagWapen(const std::string& aWapennaam)
 {
-	for (int i = 0; i < mSpeler.getWapenInventaris().size(); ++i)
+	auto it = std::find_if(mSpeler.getWapenInventaris().begin(), mSpeler.getWapenInventaris().end(),
+						   [&aWapennaam](const std::unique_ptr<WapenObject>& obj)
+						   { return strcmp(obj->getNaam(), aWapennaam.c_str()) == 0; });
+
+	if (it != mSpeler.getWapenInventaris().end())
 	{
-		if (strcmp(mSpeler.getWapenInventaris()[i]->getNaam(), aWapennaam.c_str()) == 0)
-		{
-			mSpeler.draagWapen(std::move(mSpeler.getWapenInventaris()[i]));
-			mSpeler.getWapenInventaris().erase(mSpeler.getWapenInventaris().begin() + i);
-			std::cout << "Je draagt nu " << aWapennaam << "." << std::endl;
-			return;
-		}
+		auto huidigWapen = std::move(mSpeler.getHuidigWapen());
+		mSpeler.draagWapen(std::move(*it));
+		mSpeler.getWapenInventaris().erase(it);
+		mSpeler.voegObjectToe(huidigWapen.release());
+		Logger::getInstance().logOutput("Je draagt nu " + aWapennaam + ".\n");
 	}
-	std::cout << "Wapen " << aWapennaam << " is niet gevonden in je inventaris." << std::endl;
+	else
+	{
+		Logger::getInstance().logOutput("Wapen " + aWapennaam + " is niet gevonden in je inventaris.\n");
+	}
 }
 
-void SpelerActieHandler::wacht() { std::cout << "Je hebt gewacht." << std::endl; }
+void SpelerActieHandler::wacht() { Logger::getInstance().logOutput("Je hebt gewacht.\n"); }
 
 void SpelerActieHandler::consumeer(const std::string& aObjectnaam)
 {
-    for (auto it = mSpeler.getConsumeerbareObjecten().begin(); it != mSpeler.getConsumeerbareObjecten().end(); ++it)
-    {
-        if (std::string((*it)->getNaam()).find(aObjectnaam) != std::string::npos)
-        {
-            if (aObjectnaam.find("levenselixer") != std::string::npos)
-            {
-                mSpeler.voegLevenspuntenToe(std::move(*it));
-                std::cout << "Je hebt " << aObjectnaam << " geconsumeerd." << std::endl;
-            }
-            else if (aObjectnaam.find("ervaringsdrank") != std::string::npos)
-            {
-                int huidigeAanvalskans = mSpeler.getAanvalskans();
-                int nieuweAanvalskans = std::min(huidigeAanvalskans + 10, 90);
-                mSpeler.setAanvalskans(nieuweAanvalskans);
-                std::cout << "Je hebt " << aObjectnaam << " geconsumeerd." << std::endl;
-                std::cout << "Je aanvalskans is verhoogd naar " << nieuweAanvalskans << "%." << std::endl;
-            }
-            else if (aObjectnaam.find("teleportatiedrank") != std::string::npos)
-            {
-                int nieuweLocatieIndex = RandomEngine::getRandomInt(0, mSpelwereld.getLocatiesCount() - 1);
-                Locatie* nieuweLocatie = mSpelwereld.getLocatieByIndex(nieuweLocatieIndex);
-                mSpelwereld.setCurrentLocatie(nieuweLocatie);
-                std::cout << "Je hebt " << aObjectnaam << " geconsumeerd." << std::endl;
-                std::cout << "Je bent geteleporteerd naar een nieuwe locatie." << std::endl;
-                mGebruikersInterface.toonLocatie(mSpelwereld.getCurrentLocatie());
-            }
-            mSpeler.getConsumeerbareObjecten().erase(it);
-            return;
-        }
-    }
-    std::cout << "Object " << aObjectnaam << " is niet gevonden in je inventaris." << std::endl;
+	for (auto it = mSpeler.getConsumeerbareObjecten().begin(); it != mSpeler.getConsumeerbareObjecten().end(); ++it)
+	{
+		if (std::string((*it)->getNaam()).find(aObjectnaam) != std::string::npos)
+		{
+			if (aObjectnaam.find("levenselixer") != std::string::npos)
+			{
+				mSpeler.voegLevenspuntenToe(std::move(*it));
+				Logger::getInstance().logOutput("Je hebt " + aObjectnaam + " geconsumeerd.\n");
+			}
+			else if (aObjectnaam.find("ervaringsdrank") != std::string::npos)
+			{
+				int huidigeAanvalskans = mSpeler.getAanvalskans();
+				int nieuweAanvalskans = std::min(huidigeAanvalskans + 10, 90);
+				mSpeler.setAanvalskans(nieuweAanvalskans);
+				Logger::getInstance().logOutput("Je hebt " + aObjectnaam + " geconsumeerd.\n");
+				Logger::getInstance().logOutput(
+					"Je aanvalskans is verhoogd naar " + std::to_string(nieuweAanvalskans) + "%.\n");
+			}
+			else if (aObjectnaam.find("teleportatiedrank") != std::string::npos)
+			{
+				int nieuweLocatieIndex = RandomEngine::getRandomInt(0, mSpelwereld.getLocatiesCount() - 1);
+				Locatie* nieuweLocatie = mSpelwereld.getLocatieByIndex(nieuweLocatieIndex);
+				mSpelwereld.setCurrentLocatie(nieuweLocatie);
+				Logger::getInstance().logOutput("Je hebt " + aObjectnaam + " geconsumeerd.\n");
+				Logger::getInstance().logOutput("Je bent geteleporteerd naar een nieuwe locatie.\n");
+				mGebruikersInterface.toonLocatie(mSpelwereld.getCurrentLocatie());
+			}
+			mSpeler.getConsumeerbareObjecten().erase(it);
+			return;
+		}
+	}
+	Logger::getInstance().logOutput("Object " + aObjectnaam + " is niet gevonden in je inventaris.\n");
 }
 
 void SpelerActieHandler::godMode()
@@ -478,12 +508,12 @@ void SpelerActieHandler::godMode()
 	if (mSpeler.getGodMode())
 	{
 		mSpeler.setGodMode(false);
-		std::cout << "God mode is uitgeschakeld." << std::endl;
+		Logger::getInstance().logOutput("God mode is uitgeschakeld.\n");
 		return;
 	}
 	else
 	{
 		mSpeler.setGodMode(true);
-		std::cout << "God mode is ingeschakeld." << std::endl;
+		Logger::getInstance().logOutput("God mode is ingeschakeld.\n");
 	}
 }

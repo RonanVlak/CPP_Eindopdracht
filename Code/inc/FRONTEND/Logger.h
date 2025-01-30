@@ -15,7 +15,8 @@ public:
     }
 
     void logOutput(const std::string& message);
-    void logInput(std::string input);
+    void logOutput(const char* message);
+    void logInput(const std::string& input);
 
 private:
     Logger(const std::string& filename);

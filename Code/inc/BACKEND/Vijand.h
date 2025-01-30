@@ -26,8 +26,13 @@ public:
     int getLevenspunten() const;
     int getMinimumObjecten() const;
     int getMaximumObjecten() const;
+    int getAanvalskans() const;
+    int getAanvalsschadeMin() const;
+    int getAanvalsschadeMax() const;
     const char* getNaam() const;
     const char* getBeschrijving() const;
+    bool getBewogen() const;
+    void setBewogen(bool bewogen);
     int attack() const;
     void setNaam(const char* naam);
 
@@ -45,6 +50,7 @@ private:
     int mAanvalskans;
     int mAanvalsschadeMin;
     int mAanvalsschadeMax;
+    bool mBewogen;
     CustomVector<Spelobject*> mSpelobjecten;
 };
 

@@ -186,7 +186,7 @@ CustomVector<Spelobject*> DatabaseLoader::laadSpelobjecten(const char* databaseB
 	return spelobjectenVector;
 }
 
-void DatabaseLoader::voegLeaderboardToe(const char* databaseBestand, const char* naam, int goudstukken)
+void DatabaseLoader::voegLeaderboardToe(const char* databaseBestand, const char* naam, int goudstukken) const
 {
 	try
 	{
@@ -213,7 +213,7 @@ void DatabaseLoader::voegLeaderboardToe(const char* databaseBestand, const char*
 	}
 }
 
-void DatabaseLoader::printLeaderboard(const char* databaseBestand)
+void DatabaseLoader::printLeaderboard(const char* databaseBestand) const
 {
 	try
 	{
@@ -225,7 +225,6 @@ void DatabaseLoader::printLeaderboard(const char* databaseBestand)
 		{
 			const char* naam = reinterpret_cast<const char*>(sqlite3_column_text(stmt.get(), 0));
 			int goudstukken = sqlite3_column_int(stmt.get(), 1);
-			//std::cout << naam << " - " << goudstukken << " goudstukken" << std::endl;
             Logger::getInstance().logOutput(naam);
             Logger::getInstance().logOutput(" - ");
             Logger::getInstance().logOutput(std::to_string(goudstukken));

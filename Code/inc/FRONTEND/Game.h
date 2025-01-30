@@ -18,8 +18,7 @@ class Game
 {
 public:
 	Game();
-	~Game();
-
+	~Game() = default;
 	void start();
 	void laadKerkerVanXML(const std::string& xmlBestand, const std::string& databaseBestand);
 	void initSpeler(const std::string& naam, const std::string& dbPath);
@@ -46,6 +45,7 @@ private:
 
 	bool mRandomDungeon;
 	bool mXMLDungeon;
+	bool mFirstRun;
 	std::string mPlayerName;
     std::string mDbPath;
 

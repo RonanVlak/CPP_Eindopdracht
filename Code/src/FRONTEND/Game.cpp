@@ -4,7 +4,6 @@
 #include "FRONTEND/Logger.h"
 #include "FRONTEND/SpelwereldFacade.h"
 #include "FSConverter.h"
-#include <algorithm>
 #include <filesystem>
 #include <iostream>
 #include <stdexcept>
@@ -21,9 +20,8 @@ Game::Game()
 	mRandomDungeon = false;
 	mPlayerName = "";
 	mDbPath = "";
+	mFirstRun = true;
 }
-
-Game::~Game() { mCurrentState = State::Quit; }
 
 void Game::start()
 {
@@ -38,17 +36,6 @@ void Game::start()
 
 		Logger::getInstance().logOutput("Game gestart!\n");
 
-		while (mPlayerName.empty())
-		{
-			mPlayerName = mGebruikersInterface->vraagSpelerNaam();
-			if (mPlayerName.empty())
-			{
-				// std::cerr << "Fout: Speler naam is niet ingevuld!" << std::endl;
-				Logger::getInstance().logOutput("Fout: Speler naam is niet ingevuld!\n");
-			}
-		}
-
-		initSpeler(mPlayerName, mDbPath);
 		printLeaderboard(mDbPath);
 		while (mCurrentState != State::Quit)
 		{
@@ -99,7 +86,7 @@ void Game::mainMenu()
 
 			int choice;
 			std::cin >> choice;
-			Logger::getInstance().logOutput(std::to_string(choice) + "\n");
+			Logger::getInstance().logInput(std::to_string(choice) + "\n");
 
 			// Check for valid input
 			if (std::cin.fail())
@@ -148,7 +135,7 @@ void Game::gameMenu()
 
 			int choice;
 			std::cin >> choice;
-			Logger::getInstance().logOutput(std::to_string(choice) + "\n");
+			Logger::getInstance().logInput(std::to_string(choice) + "\n");
 
 			// Check for valid input
 			if (std::cin.fail())
@@ -205,6 +192,22 @@ void Game::gameplay()
 {
 	try
 	{
+		if (!mFirstRun)
+		{
+			std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+		}
+		do
+		{
+			mPlayerName = mGebruikersInterface->vraagSpelerNaam();
+
+			if (mPlayerName.empty())
+			{
+				Logger::getInstance().logOutput("Fout: Speler naam is niet ingevuld!\n");
+			}
+		} while (mPlayerName.empty());
+
+		initSpeler(mPlayerName, mDbPath);
+
 		mSpelwereld->setCurrentLocatie(mSpelwereld->getLocatieByIndex(0));
 		mGebruikersInterface->toonLocatie(mSpelwereld->getCurrentLocatie());
 
@@ -256,7 +259,7 @@ void Game::gameplay()
 						}
 					}
 				}
-                Logger::getInstance().logOutput("\n");
+				Logger::getInstance().logOutput("\n");
 			}
 			catch (const std::exception& e)
 			{
@@ -275,9 +278,10 @@ void Game::deathMenu()
 {
 	try
 	{
-		initSpeler(mPlayerName, mDbPath);
 		printLeaderboard(mDbPath);
 		mSpelwereld->clear();
+		mPlayerName = "";
+		mFirstRun = false;
 
 		FSConverter fsConverter;
 		std::string resourcesDirectory = fsConverter.getResourcePath("");
@@ -287,11 +291,11 @@ void Game::deathMenu()
 			{
 				Logger::getInstance().logOutput("Wat wil je doen?\n");
 				Logger::getInstance().logOutput("1. Opnieuw spelen\n");
-				Logger::getInstance().logOutput("2. Terug naar Main Menu\n");
+				Logger::getInstance().logOutput("2. Quit\n");
 
 				int choice;
 				std::cin >> choice;
-				Logger::getInstance().logOutput(std::to_string(choice) + "\n");
+				Logger::getInstance().logInput("> " + std::to_string(choice) + "\n");
 
 				// Check for valid input
 				if (std::cin.fail())
@@ -328,7 +332,7 @@ void Game::deathMenu()
 					mCurrentState = State::Gameplay; // Set the state to gameplay
 					return;							 // Exit the menu function to restart the game
 				case 2:
-					mCurrentState = State::MainMenu; // Set the state to main menu
+					mCurrentState = State::Quit; // Set the state to main menu
 					return;							 // Exit the menu function to return to the main menu
 				default:
 					Logger::getInstance().logOutput("Onbekende keuze, probeer het opnieuw.\n");

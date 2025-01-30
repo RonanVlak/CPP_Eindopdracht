@@ -18,7 +18,7 @@ public:
     void voegZichtbaarObjectToe(Spelobject* object);
     void voegVerborgenObjectToe(Spelobject* object);
     void voegUitgangToe(const char* richting, int locatieId);
-    void voegVijandToe(Vijand* aVijand);
+    void voegVijandToe(Vijand* vijand);
     void verwijderVijand(Vijand* vijand);
 
     const char* getNaam() const;
@@ -41,7 +41,7 @@ public:
 
     void setID(int id);
     void verplaatsVerborgenNaarZichtbaar(Spelobject* object);   
-    void setUitgang(const char* richting, Locatie* aLocatie);
+    void setUitgang(const char* richting, Locatie* locatie);
     void verwijderZichtbaarObject(Spelobject* object);
     void listExits() const;
     void printZichtbareObjecten() const;

@@ -27,10 +27,20 @@ void Logger::logOutput(const std::string& message)
     }
 }
 
-void Logger::logInput(std::string input)
+void Logger::logOutput(const char* message)
 {
+    std::cout << message;
     if (logFile.is_open())
     {
-        logFile << input << std::endl;
+        logFile << message;
+    }
+}
+
+void Logger::logInput(const std::string& input)
+{
+    std::string prompt = "> ";
+    if (logFile.is_open())
+    {
+        logFile << prompt << input << std::endl;
     }
 }

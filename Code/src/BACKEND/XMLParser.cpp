@@ -5,8 +5,6 @@
 
 XMLParser::XMLParser() {}
 
-XMLParser::~XMLParser() {}
-
 bool XMLParser::parseFile(const char* filename, Spelwereld& spelwereld, const char* databaseBestand) {
     tinyxml2::XMLDocument doc;
     if (doc.LoadFile(filename) != tinyxml2::XML_SUCCESS) {
@@ -57,8 +55,6 @@ void XMLParser::parseLocatie(tinyxml2::XMLElement* locatieElement, Spelwereld& s
     if (beschrijvingElement) {
         beschrijving = beschrijvingElement->GetText();
     }
-
-    std::cout << "Parsed location: " << (naam ? naam : "unknown") << " with ID: " << id << std::endl;
 
     LocatieFactory locatieFactory;
     Locatie* locatie = locatieFactory.CreateLocatie(id, naam ? naam : "", beschrijving ? beschrijving : "", gedetailleerdeBeschrijving ? gedetailleerdeBeschrijving : "", noord ? noord : "", oost ? oost : "", zuid ? zuid : "", west ? west : "", vijanden ? vijanden : "", objectenVerborgen ? objectenVerborgen : "", objectenZichtbaar ? objectenZichtbaar : "", databaseBestand);

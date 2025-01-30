@@ -1,7 +1,8 @@
 #include "Vijand.h"
+#include "Logger.h"
+#include "RandomEngine.h"
 #include <cstring>
 #include <iostream>
-#include "RandomEngine.h"
 
 Vijand::Vijand(const char* aNaam, const char* aBeschrijving, int aMinimumobjecten, int aMaximumobjecten,
 			   int aLevenspunten, int aAanvalskans, int aAanvalsschadeMin, int aAanvalsschadeMax)
@@ -13,12 +14,16 @@ Vijand::Vijand(const char* aNaam, const char* aBeschrijving, int aMinimumobjecte
 	strcpy(mNaam, aNaam);
 	mBeschrijving = new char[strlen(aBeschrijving) + 1];
 	strcpy(mBeschrijving, aBeschrijving);
+
+	mBewogen = false;
 }
 
 Vijand::~Vijand() { clear(); }
 
+//Copy constructor
 Vijand::Vijand(const Vijand& other) { copyFrom(other); }
 
+//Assignment operator
 Vijand& Vijand::operator=(const Vijand& other)
 {
 	if (this != &other)
@@ -29,8 +34,10 @@ Vijand& Vijand::operator=(const Vijand& other)
 	return *this;
 }
 
+//Move constructor
 Vijand::Vijand(Vijand&& other) noexcept { moveFrom(std::move(other)); }
 
+//Move assignment operator
 Vijand& Vijand::operator=(Vijand&& other) noexcept
 {
 	if (this != &other)
@@ -70,23 +77,11 @@ bool Vijand::isVerslagen() const { return mLevenspunten <= 0; }
 
 void Vijand::bekijk() const
 {
-	std::cout << "Naam: " << mNaam << "\nBeschrijving: " << mBeschrijving << "\nLevenspunten: " << mLevenspunten
-			<< "\n";
-	if (isVerslagen())
-	{
-		if (mSpelobjecten.size() == 0)
-		{
-			std::cout << "  Vijand heeft geen objecten.\n";
-		}
-		else
-		{
-            std::cout << "  Objecten van " << mNaam << ":\n";
-			for (int i = 0; i < mSpelobjecten.size(); ++i)
-			{
-				std::cout << "  - " << mSpelobjecten[i]->getNaam() << "\n";
-			}
-		}
-	}
+	Logger::getInstance().logOutput("Naam: ");
+	Logger::getInstance().logOutput(mNaam);
+	Logger::getInstance().logOutput("\nBeschrijving: ");
+	Logger::getInstance().logOutput(mBeschrijving);
+	Logger::getInstance().logOutput("\nLevenspunten: " + std::to_string(mLevenspunten) + "\n");
 }
 
 void Vijand::voegSpelobjectToe(Spelobject* spelobject) { mSpelobjecten.push_back(spelobject); }
@@ -97,7 +92,6 @@ void Vijand::removeSpelobject(Spelobject* spelobject)
 	{
 		if (mSpelobjecten[i] == spelobject)
 		{
-			delete mSpelobjecten[i];
 			mSpelobjecten.erase(i);
 			return;
 		}
@@ -106,18 +100,19 @@ void Vijand::removeSpelobject(Spelobject* spelobject)
 
 int Vijand::attack() const
 {
-    int hitChance = RandomEngine::getRandomInt(1, 100);
+	int hitChance = RandomEngine::getRandomInt(1, 100);
 
-    if (hitChance <= mAanvalskans)
-    {
-        int damage = RandomEngine::getRandomInt(mAanvalsschadeMin, mAanvalsschadeMax);
-        return damage;
-    }
-    else
-    {
-        std::cout << mNaam << " mist zijn aanval." << std::endl;
-        return 0;
-    }
+	if (hitChance <= mAanvalskans)
+	{
+		int damage = RandomEngine::getRandomInt(mAanvalsschadeMin, mAanvalsschadeMax);
+		return damage;
+	}
+	else
+	{
+		Logger::getInstance().logOutput(mNaam);
+		Logger::getInstance().logOutput(" mist zijn aanval.\n");
+		return 0;
+	}
 }
 
 void Vijand::setNaam(const char* naam)
@@ -127,9 +122,7 @@ void Vijand::setNaam(const char* naam)
 	strcpy(mNaam, naam);
 }
 
-CustomVector<Spelobject*> Vijand::getSpelobjecten() const {
-    return mSpelobjecten;
-}
+CustomVector<Spelobject*> Vijand::getSpelobjecten() const { return mSpelobjecten; }
 
 Spelobject* Vijand::getSpelobject(int index) const
 {
@@ -151,6 +144,16 @@ const char* Vijand::getBeschrijving() const { return mBeschrijving; }
 int Vijand::getMinimumObjecten() const { return mMinimumObjecten; }
 
 int Vijand::getMaximumObjecten() const { return mMaximumObjecten; }
+
+int Vijand::getAanvalskans() const { return mAanvalskans; }
+
+int Vijand::getAanvalsschadeMin() const { return mAanvalsschadeMin; }
+
+int Vijand::getAanvalsschadeMax() const { return mAanvalsschadeMax; }
+
+bool Vijand::getBewogen() const { return mBewogen; }
+
+void Vijand::setBewogen(bool bewogen) { mBewogen = bewogen; }
 
 void Vijand::copyFrom(const Vijand& other)
 {

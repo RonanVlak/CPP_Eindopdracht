@@ -1,4 +1,5 @@
 #include "Locatie.h"
+#include "Logger.h"
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
@@ -17,8 +18,10 @@ Locatie::Locatie(int id, const char* naam, const char* algemeneOmschrijving, con
 
 Locatie::~Locatie() { clear(); }
 
+//Copy constructor
 Locatie::Locatie(const Locatie& other) { copyFrom(other); }
 
+//Assignment operator
 Locatie& Locatie::operator=(const Locatie& other)
 {
 	if (this != &other)
@@ -29,6 +32,7 @@ Locatie& Locatie::operator=(const Locatie& other)
 	return *this;
 }
 
+//Move constructor
 Locatie::Locatie(Locatie&& other) noexcept { moveFrom(std::move(other)); }
 
 Locatie& Locatie::operator=(Locatie&& other) noexcept
@@ -121,7 +125,7 @@ void Locatie::clear() {
     mRichtingen.clear();
 }
 
-void Locatie::voegVijandToe(Vijand* aVijand) { mVijanden.push_back(aVijand); }
+void Locatie::voegVijandToe(Vijand* vijand) { mVijanden.push_back(vijand); }
 
 void Locatie::voegZichtbaarObjectToe(Spelobject* object) { mZichtbareObjecten.push_back(object); }
 
@@ -167,23 +171,23 @@ int Locatie::getZuid() const { return mZuid; }
 
 int Locatie::getWest() const { return mWest; }
 
-void Locatie::setUitgang(const char* richting, Locatie* aLocatie)
+void Locatie::setUitgang(const char* richting, Locatie* locatie)
 {
 	if (strcmp(richting, "noord") == 0)
 	{
-		mNoord = aLocatie->mId;
+		mNoord = locatie->mId;
 	}
 	else if (strcmp(richting, "oost") == 0)
 	{
-		mOost = aLocatie->mId;
+		mOost = locatie->mId;
 	}
 	else if (strcmp(richting, "zuid") == 0)
 	{
-		mZuid = aLocatie->mId;
+		mZuid = locatie->mId;
 	}
 	else if (strcmp(richting, "west") == 0)
 	{
-		mWest = aLocatie->mId;
+		mWest = locatie->mId;
 	}
 }
 
@@ -319,7 +323,7 @@ void Locatie::printZichtbareObjecten() const
 {
 	if (mZichtbareObjecten.size() == 0)
 	{
-		std::cout << "  Geen zichtbare objecten" << std::endl;
+		Logger::getInstance().logOutput("  Geen zichtbare objecten\n");
 		return;
 	}
 
@@ -328,28 +332,29 @@ void Locatie::printZichtbareObjecten() const
 		Spelobject* obj = mZichtbareObjecten[i];
 		if (obj)
 		{
-			std::cout << "  - " << obj->getNaam() << std::endl;
+			Logger::getInstance().logOutput("  - ");
+			Logger::getInstance().logOutput(obj->getNaam());
+			Logger::getInstance().logOutput("\n");
 		}
 	}
 }
 
 void Locatie::listExits() const
 {
-	std::cout << "Exits for " << mNaam << " (ID: " << mId << "):" << std::endl;
 	if (mNoord != -1)
 	{
-		std::cout << "  noord -> " << mNoord << std::endl;
+		Logger::getInstance().logOutput("  - noord\n");
 	}
 	if (mOost != -1)
 	{
-		std::cout << "  oost -> " << mOost << std::endl;
+		Logger::getInstance().logOutput("  - oost\n");
 	}
 	if (mZuid != -1)
 	{
-		std::cout << "  zuid -> " << mZuid << std::endl;
+		Logger::getInstance().logOutput("  - zuid\n");
 	}
 	if (mWest != -1)
 	{
-		std::cout << "  west -> " << mWest << std::endl;
+		Logger::getInstance().logOutput("  - west\n");
 	}
 }

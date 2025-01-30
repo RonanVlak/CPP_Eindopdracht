@@ -16,7 +16,7 @@ public:
     const char* getNaam() const;
     const char* getBeschrijving() const;
 
-    void setNaam(const char* aNaam);
+    void setNaam(const char* naam);
 protected:
     void copyFrom(const Spelobject& other);
     void moveFrom(Spelobject&& other) noexcept;

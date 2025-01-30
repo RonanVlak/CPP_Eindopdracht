@@ -19,8 +19,8 @@ public:
     CustomVector<Vijand*> laadVijanden(const char* databaseBestand, int& count);
     CustomVector<Spelobject*> laadSpelobjecten(const char* databaseBestand, int& count);
     CustomVector<Locatie*> laadLocaties(const char* databaseBestand, int& count);
-    void printLeaderboard(const char* databaseBestand);
-    void voegLeaderboardToe(const char* databaseBestand, const char* naam, int goudstukken);
+    void printLeaderboard(const char* databaseBestand) const;
+    void voegLeaderboardToe(const char* databaseBestand, const char* naam, int goudstukken) const;
 };
 
 #endif // DATABASELOADER_H

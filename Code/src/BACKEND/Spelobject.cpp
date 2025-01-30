@@ -13,10 +13,12 @@ Spelobject::~Spelobject() {
     clear();
 }
 
+//Copy constructor
 Spelobject::Spelobject(const Spelobject& other) {
     copyFrom(other);
 }
 
+//Assignment operator
 Spelobject& Spelobject::operator=(const Spelobject& other) {
     if (this != &other) {
         clear();
@@ -25,10 +27,12 @@ Spelobject& Spelobject::operator=(const Spelobject& other) {
     return *this;
 }
 
+//Move constructor
 Spelobject::Spelobject(Spelobject&& other) noexcept {
     moveFrom(static_cast<Spelobject&&>(other));
 }
 
+//Move assignment operator
 Spelobject& Spelobject::operator=(Spelobject&& other) noexcept {
     if (this != &other) {
         clear();

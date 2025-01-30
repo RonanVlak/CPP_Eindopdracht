@@ -1,5 +1,6 @@
 #include "Spelwereld.h"
 #include "DatabaseLoader.h"
+#include "Logger.h"
 #include "RandomEngine.h"
 #include "WapenObject.h"
 #include <cstdlib>
@@ -11,8 +12,10 @@ Spelwereld::Spelwereld() : mCurrentLocatie(nullptr) {}
 
 Spelwereld::~Spelwereld() { clear(); }
 
+//Copy constructor
 Spelwereld::Spelwereld(const Spelwereld& other) { copyFrom(other); }
 
+//Assignment operator
 Spelwereld& Spelwereld::operator=(const Spelwereld& other)
 {
 	if (this != &other)
@@ -23,8 +26,10 @@ Spelwereld& Spelwereld::operator=(const Spelwereld& other)
 	return *this;
 }
 
+//Move constructor
 Spelwereld::Spelwereld(Spelwereld&& other) noexcept { moveFrom(std::move(other)); }
 
+//Move assignment operator
 Spelwereld& Spelwereld::operator=(Spelwereld&& other) noexcept
 {
 	if (this != &other)
@@ -91,7 +96,8 @@ int Spelwereld::getEnemiesDamage()
 				totalDamage += damage;
 				if (damage > 0)
 				{
-					std::cout << vijand->getNaam() << " heeft je " << damage << " schade toegebracht." << std::endl;
+					Logger::getInstance().logOutput(vijand->getNaam());
+					Logger::getInstance().logOutput(" heeft je " + std::to_string(damage) + " schade toegebracht.");
 				}
 			}
 		}
@@ -101,51 +107,50 @@ int Spelwereld::getEnemiesDamage()
 
 void Spelwereld::verplaatsVijanden()
 {
-	Locatie* currentLocation = getCurrentLocatie();
-	bool enemiesInCurrentLocation = false;
-
-	if (currentLocation)
+	// Reset move flags for all enemies first
+	for (Locatie* locatie : mLocaties)
 	{
-		for (int i = 0; i < currentLocation->getVijandenCount(); ++i)
+		for (int j = 0; j < locatie->getVijandenCount(); ++j)
 		{
-			Vijand* vijand = currentLocation->getVijand(i);
+			Vijand* vijand = locatie->getVijand(j);
 			if (vijand && !vijand->isVerslagen())
 			{
-				enemiesInCurrentLocation = true;
+				vijand->setBewogen(false);
 			}
 		}
 	}
 
-	if (!enemiesInCurrentLocation)
+	// Move enemies logic
+	for (Locatie* locatie : mLocaties)
 	{
-		// Move enemies in all other rooms
-		for (int i = 0; i < mLocaties.size(); ++i)
+		for (int j = 0; j < locatie->getVijandenCount(); ++j)
 		{
-			Locatie* locatie = mLocaties[i];
-			if (locatie != currentLocation)
-			{
-				for (int j = 0; j < locatie->getVijandenCount(); ++j)
-				{
-					Vijand* vijand = locatie->getVijand(j);
-					if (vijand && !vijand->isVerslagen())
-					{
-						int moveChance = RandomEngine::getRandomInt(1, 100);
+			Vijand* vijand = locatie->getVijand(j);
 
-						if (moveChance <= 50)
-						{ // 50% chance to move
-							// Get a random adjacent location
-							CustomVector<Locatie*> adjacentLocations = getAdjacentLocations(locatie);
-							if (adjacentLocations.size() > 0)
-							{
-								int randomIndex = RandomEngine::getRandomInt(0, adjacentLocations.size() - 1);
-								Locatie* newLocation = adjacentLocations[randomIndex];
-								newLocation->voegVijandToe(vijand);
-								std::cout << vijand->getNaam() << " is verplaatst naar " << newLocation->getNaam()
-										  << "." << std::endl;
-								locatie->verwijderVijand(vijand);
-							}
-						}
-					}
+			// Skip if enemy is defeated or already moved
+			if (!vijand || vijand->isVerslagen() || vijand->getBewogen())
+				continue;
+
+			int moveChance = RandomEngine::getRandomInt(1, 100);
+			if (moveChance <= 50)
+			{
+				// Get adjacent locations
+				CustomVector<Locatie*> adjacentLocations = getAdjacentLocations(locatie);
+				if (!adjacentLocations.size() > 0)
+				{
+					int randomIndex = RandomEngine::getRandomInt(0, adjacentLocations.size() - 1);
+					Locatie* newLocation = adjacentLocations[randomIndex];
+
+					// Move enemy
+					newLocation->voegVijandToe(vijand);
+					Logger::getInstance().logOutput(vijand->getNaam());
+					Logger::getInstance().logOutput(" is verplaatst naar ");
+					Logger::getInstance().logOutput(newLocation->getNaam());
+					Logger::getInstance().logOutput(".\n");
+					locatie->verwijderVijand(vijand);
+
+					// Mark enemy as moved
+					vijand->setBewogen(true);
 				}
 			}
 		}
@@ -363,118 +368,15 @@ void Spelwereld::generateRandomKerker(const char* databaseBestand)
 		delete object;
 	}
 
-	// Create the adjacency matrix
+	// Connect locations in a single line using north and south exits
 	int locatiesCount = getLocatiesCount();
-	int** adjacencyMatrix = new int*[locatiesCount];
-	for (int i = 0; i < locatiesCount; ++i)
+	for (int i = 0; i < locatiesCount - 1; ++i)
 	{
-		adjacencyMatrix[i] = new int[locatiesCount];
-		for (int j = 0; j < locatiesCount; ++j)
-		{
-			adjacencyMatrix[i][j] = 0;
-		}
+		Locatie* currentLocatie = getLocatieByIndex(i);
+		Locatie* nextLocatie = getLocatieByIndex(i + 1);
+		currentLocatie->voegUitgangToe("noord", nextLocatie->getId());
+		nextLocatie->voegUitgangToe("zuid", currentLocatie->getId());
 	}
-
-	// Ensure each room has between 1 and 4 exits and is accessible
-	for (int i = 0; i < locatiesCount; ++i)
-	{
-		int numExits = RandomEngine::getRandomInt(1, 4);
-
-		for (int e = 0; e < numExits; ++e)
-		{
-			int target = RandomEngine::getRandomInt(0, locatiesCount - 1);
-
-			if (target != i && adjacencyMatrix[i][target] == 0)
-			{
-				adjacencyMatrix[i][target] = 1;
-				adjacencyMatrix[target][i] = 1;
-			}
-		}
-	}
-
-	// Ensure all rooms are accessible
-	bool* visited = new bool[locatiesCount];
-	for (int i = 0; i < locatiesCount; ++i)
-	{
-		visited[i] = false;
-	}
-	int* toVisit = new int[locatiesCount];
-	int toVisitCount = 0;
-
-	toVisit[toVisitCount++] = 0;
-	visited[0] = true;
-
-	while (toVisitCount > 0)
-	{
-		int current = toVisit[--toVisitCount];
-
-		for (int j = 0; j < locatiesCount; ++j)
-		{
-			if (adjacencyMatrix[current][j] == 1 && !visited[j])
-			{
-				visited[j] = true;
-				toVisit[toVisitCount++] = j;
-			}
-		}
-	}
-
-	for (int i = 0; i < locatiesCount; ++i)
-	{
-		if (!visited[i])
-		{
-			// Connect this room to a random visited room
-			int target = RandomEngine::getRandomInt(0, locatiesCount - 1);
-			while (!visited[target])
-			{
-				target = RandomEngine::getRandomInt(0, locatiesCount - 1);
-			}
-			adjacencyMatrix[i][target] = 1;
-			adjacencyMatrix[target][i] = 1;
-		}
-	}
-
-	delete[] visited;
-	delete[] toVisit;
-
-	// Set the exits based on the adjacency matrix
-	for (int i = 0; i < locatiesCount; ++i)
-	{
-		for (int j = 0; j < locatiesCount; ++j)
-		{
-			if (adjacencyMatrix[i][j] == 1)
-			{
-				Locatie* locatieI = getLocatieByIndex(i);
-				Locatie* locatieJ = getLocatieByIndex(j);
-				if (locatieI->getNoord() == -1 && locatieJ->getZuid() == -1)
-				{
-					locatieI->voegUitgangToe("noord", locatieJ->getId());
-					locatieJ->voegUitgangToe("zuid", locatieI->getId());
-				}
-				else if (locatieI->getOost() == -1 && locatieJ->getWest() == -1)
-				{
-					locatieI->voegUitgangToe("oost", locatieJ->getId());
-					locatieJ->voegUitgangToe("west", locatieI->getId());
-				}
-				else if (locatieI->getZuid() == -1 && locatieJ->getNoord() == -1)
-				{
-					locatieI->voegUitgangToe("zuid", locatieJ->getId());
-					locatieJ->voegUitgangToe("noord", locatieI->getId());
-				}
-				else if (locatieI->getWest() == -1 && locatieJ->getOost() == -1)
-				{
-					locatieI->voegUitgangToe("west", locatieJ->getId());
-					locatieJ->voegUitgangToe("oost", locatieI->getId());
-				}
-			}
-		}
-	}
-
-	// Clean up the adjacency matrix
-	for (int i = 0; i < locatiesCount; ++i)
-	{
-		delete[] adjacencyMatrix[i];
-	}
-	delete[] adjacencyMatrix;
 
 	// Set the initial location
 	if (getLocatiesCount() > 0)

@@ -1,0 +1,6 @@
+<locaties>
+<locatie id="1" noord="2" oost="4" objectenverborgen="klein levenselixer">Start locatie<beschrijving>Dit is de startlocatie. Beweeg noord om naar de volgende locatie te gaan.</beschrijving></locatie>
+<locatie id="2" oost="3" zuid="1" vijand="Grote Rat" objectenverborgen="dolk;kleine buidel">Eerste ruimte<beschrijving>Dit is de tweede locatie en de enige waar een vijand start.</beschrijving></locatie>
+<locatie id="3" west="2" zuid="4" objectenverborgen="harnas;roestig zwaard">Tweede ruimte<beschrijving>De derde locatie heeft enkel wat objecten.</beschrijving></locatie>
+<locatie id="4" noord="3" west="1" objectenverborgen="groot ervaringsdrank;hard leren wapennrusting">Derde ruimte<beschrijving>Dit is de vierde locatie. Ook die heeft enkel wat objecten.</beschrijving></locatie>
+</locaties>
